@@ -561,3 +561,21 @@ test('StorageBridge.executeOnTab - falls back to tabs.executeScript if scripting
   const result = await bridge.executeOnTab(10, () => ({ key: 'value' }));
   assert.deepEqual(result, { key: 'value' });
 });
+
+test('StorageBridge.clearIndexedDB - executes without errors on valid tab', async () => {
+  const detector = {
+    getApi() {
+      return {
+        scripting: {
+          async executeScript({ target, func }) {
+            return [{ result: true }];
+          },
+        },
+      };
+    },
+  };
+
+  const bridge = new StorageBridge(detector);
+  const res = await bridge.clearIndexedDB(10);
+  assert.equal(res, true);
+});

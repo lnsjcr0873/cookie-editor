@@ -274,4 +274,29 @@ export class StorageBridge {
       )) || false
     );
   }
+
+  /**
+   * Clears all IndexedDB databases on the tab origin.
+   * @param {number} tabId
+   * @return {Promise<boolean>}
+   */
+  async clearIndexedDB(tabId) {
+    return (
+      (await this.executeOnTab(tabId, async () => {
+        try {
+          if (window.indexedDB && window.indexedDB.databases) {
+            const dbs = await window.indexedDB.databases();
+            for (const db of dbs) {
+              if (db.name) {
+                window.indexedDB.deleteDatabase(db.name);
+              }
+            }
+          }
+          return true;
+        } catch (e) {
+          return false;
+        }
+      })) || false
+    );
+  }
 }

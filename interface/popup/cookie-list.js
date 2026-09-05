@@ -160,10 +160,11 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
         await cookieJarManager.stash(domain, currentCookiesList, webStorage);
         // Clear cookies on domain
         await deleteAllCookiesInternal(false);
-        // Clear web storage on tab
+        // Clear web storage and IndexedDB on tab
         if (tabId) {
           await storageBridge.clearLocalStorage(tabId);
           await storageBridge.clearSessionStorage(tabId);
+          await storageBridge.clearIndexedDB(tabId);
         }
         await checkSandboxUI(domain);
         sendNotification(
@@ -1121,19 +1122,21 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
     const api = browserDetector.getApi();
     const tabId = getCurrentTabId();
     if (tabId && api.tabs?.reload) {
-      api.tabs.reload(tabId);
+      api.tabs.reload(tabId, { bypassCache: true });
     }
   }
 
   function getCookieCanonicalUrl(cookie, fallbackUrl = '') {
+    const tabUrl = fallbackUrl || getCurrentTabUrl();
+    const isTabHttps = tabUrl.startsWith('https:');
     if (cookie && cookie.domain) {
       const cleanDomain = cookie.domain.replace(/^\./, '');
-      const protocol = cookie.secure ? 'https://' : 'http://';
+      const protocol = cookie.secure || isTabHttps ? 'https://' : 'http://';
       const path =
         cookie.path && cookie.path.startsWith('/') ? cookie.path : '/';
       return `${protocol}${cleanDomain}${path}`;
     }
-    return fallbackUrl || getCurrentTabUrl();
+    return tabUrl;
   }
 
   async function getRawCookiesList() {
@@ -1237,6 +1240,7 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
       } else {
         await storageBridge.clearLocalStorage(tabId);
         await storageBridge.clearSessionStorage(tabId);
+        await storageBridge.clearIndexedDB(tabId);
       }
     }
 
@@ -1300,6 +1304,7 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
       } else {
         await storageBridge.clearLocalStorage(tabId);
         await storageBridge.clearSessionStorage(tabId);
+        await storageBridge.clearIndexedDB(tabId);
       }
     }
     await checkSandboxUI(domain);
