@@ -25,11 +25,20 @@ export class StorageBridge {
     if (api.scripting && api.scripting.executeScript) {
       try {
         const results = await api.scripting.executeScript({
-          target: { tabId: tabId },
+          target: { tabId: tabId, allFrames: true },
           func: func,
           args: args,
         });
-        return results && results[0] ? results[0].result : null;
+        if (!results || results.length === 0) return null;
+        const merged = {};
+        let isObject = false;
+        for (const res of results) {
+          if (res?.result && typeof res.result === 'object') {
+            Object.assign(merged, res.result);
+            isObject = true;
+          }
+        }
+        return isObject ? merged : (results[0]?.result ?? null);
       } catch (error) {
         console.warn(
           'StorageBridge executeOnTab warning:',
@@ -40,8 +49,20 @@ export class StorageBridge {
     } else if (api.tabs && api.tabs.executeScript) {
       try {
         const code = `(${func.toString()})(...${JSON.stringify(args)})`;
-        const results = await api.tabs.executeScript(tabId, { code });
-        return results && results[0] !== undefined ? results[0] : null;
+        const results = await api.tabs.executeScript(tabId, {
+          code,
+          allFrames: true,
+        });
+        if (!results || results.length === 0) return null;
+        const merged = {};
+        let isObject = false;
+        for (const res of results) {
+          if (res && typeof res === 'object') {
+            Object.assign(merged, res);
+            isObject = true;
+          }
+        }
+        return isObject ? merged : (results[0] ?? null);
       } catch (error) {
         console.warn('StorageBridge tabs.executeScript warning:', error);
         return null;
