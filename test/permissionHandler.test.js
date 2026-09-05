@@ -28,10 +28,29 @@ test('PermissionHandler - canHavePermissions for regular vs internal URLs', () =
     false
   );
   assert.equal(handler.canHavePermissions('edge://flags'), false);
+  assert.equal(handler.canHavePermissions('opera://settings'), false);
   assert.equal(
     handler.canHavePermissions('safari-web-extension://id/page.html'),
     false
   );
+  assert.equal(
+    handler.canHavePermissions('view-source:https://example.com'),
+    false
+  );
+  assert.equal(
+    handler.canHavePermissions('devtools://devtools/bundled'),
+    false
+  );
+  assert.equal(
+    handler.canHavePermissions('chrome-devtools://devtools/bundled'),
+    false
+  );
+  assert.equal(handler.canHavePermissions('data:text/html,<h1>hi</h1>'), false);
+  assert.equal(
+    handler.canHavePermissions('blob:https://example.com/uuid'),
+    false
+  );
+  assert.equal(handler.canHavePermissions('javascript:void(0)'), false);
 });
 
 test('PermissionHandler - getRootDomainName', () => {

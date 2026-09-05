@@ -55,7 +55,7 @@ export class OptionsHandler extends EventEmitter {
    * @return {boolean} True if the devtools panel is enabled, otherwise false.
    */
   getDevtoolsEnabled() {
-    return this.options.devtoolsEnabled;
+    return this.options.devtoolsEnabled !== false;
   }
   /**
    * Sets whether the devtools panel is enabled or not.
@@ -261,11 +261,13 @@ export class OptionsHandler extends EventEmitter {
    */
   async loadOptions() {
     console.log('Loading options');
-    this.options = await this.storageHandler.getLocal(optionsKey);
-    if (this.options == null) {
+    const saved = await this.storageHandler.getLocal(optionsKey);
+    if (saved == null) {
       console.log('No options found, creating new one');
       this.options = new Options();
       await this.saveOptions();
+    } else {
+      this.options = Object.assign(new Options(), saved);
     }
   }
 

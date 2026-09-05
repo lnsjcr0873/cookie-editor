@@ -30,7 +30,14 @@ export class PermissionHandler {
       'chrome:',
       'chrome-extension:',
       'edge:',
+      'opera:',
       'safari-web-extension:',
+      'view-source:',
+      'devtools:',
+      'chrome-devtools:',
+      'data:',
+      'blob:',
+      'javascript:',
     ];
     for (const impossibleUrl of impossibleUrls) {
       if (url.indexOf(impossibleUrl) === 0) {
