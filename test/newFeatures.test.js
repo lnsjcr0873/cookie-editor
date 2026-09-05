@@ -449,3 +449,42 @@ test('Cookie.formatExpirationForDisplay and formatExpirationForDisplayShort', ()
     '2027-01-15T08:00:00Z'
   );
 });
+
+test('SmartFilter - filters by is:hostonly and samesite: property', () => {
+  const c1 = {
+    name: 'session_c1',
+    hostOnly: true,
+    sameSite: 'lax',
+  };
+  const c2 = {
+    name: 'session_c2',
+    hostOnly: false,
+    sameSite: 'strict',
+  };
+
+  assert.equal(SmartFilter.matches(c1, 'is:hostonly'), true);
+  assert.equal(SmartFilter.matches(c2, 'is:hostonly'), false);
+
+  assert.equal(SmartFilter.matches(c1, 'samesite:lax'), true);
+  assert.equal(SmartFilter.matches(c1, 'samesite:strict'), false);
+  assert.equal(SmartFilter.matches(c2, 'samesite:strict'), true);
+});
+
+test('CookieHealthAdvisor.autoHarden - handles wrapped cookie map correctly', () => {
+  const wrappedMap = {
+    c1: {
+      cookie: {
+        name: 'auth_token',
+        value: 'tok_123',
+        secure: false,
+        httpOnly: false,
+      },
+    },
+  };
+  const hardened = CookieHealthAdvisor.autoHarden(wrappedMap);
+  assert.equal(hardened.length, 1);
+  assert.equal(hardened[0].name, 'auth_token');
+  assert.equal(hardened[0].secure, true);
+  assert.equal(hardened[0].httpOnly, true);
+  assert.equal(hardened[0].sameSite, 'lax');
+});

@@ -54,6 +54,7 @@ export class SmartFilter {
         if (flag === 'insecure' && c.secure) return false;
         if (flag === 'httponly' && !c.httpOnly) return false;
         if (flag === 'jsaccessible' && c.httpOnly) return false;
+        if (flag === 'hostonly' && !c.hostOnly) return false;
         if (flag === 'jwt' && !JWTInspector.isJWT(c.value)) return false;
         if (flag === 'locked' && !isLocked) return false;
         if (flag === 'unlocked' && isLocked) return false;
@@ -64,7 +65,7 @@ export class SmartFilter {
         continue;
       }
 
-      // Property checks: name:, domain:, path:, value:
+      // Property checks: name:, domain:, path:, value:, samesite:
       if (lowerToken.startsWith('name:')) {
         const val = lowerToken.slice(5);
         if (!(c.name || '').toLowerCase().includes(val)) return false;
@@ -83,6 +84,11 @@ export class SmartFilter {
       if (lowerToken.startsWith('value:')) {
         const val = lowerToken.slice(6);
         if (!(c.value || '').toLowerCase().includes(val)) return false;
+        continue;
+      }
+      if (lowerToken.startsWith('samesite:')) {
+        const val = lowerToken.slice(9);
+        if (!(c.sameSite || '').toLowerCase().includes(val)) return false;
         continue;
       }
 

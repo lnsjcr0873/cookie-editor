@@ -1712,6 +1712,33 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
     if (inputDomain) {
       inputDomain.value = getCurrentDomain();
     }
+
+    const inputHostOnly = form.querySelector('input[name="hostOnly"]');
+    const inputSession = form.querySelector('input[name="session"]');
+    const inputExpiration = form.querySelector('input[name="expiration"]');
+
+    if (inputSession && inputExpiration) {
+      inputExpiration.disabled = inputSession.checked;
+      if (inputSession.checked) {
+        inputExpiration.value = '无过期时间 (Session)';
+      }
+      inputSession.addEventListener('change', e => {
+        inputExpiration.disabled = e.target.checked;
+        if (e.target.checked) {
+          inputExpiration.value = '无过期时间 (Session)';
+        } else {
+          const defaultExp = new Date(Date.now() + 3600 * 1000);
+          inputExpiration.value = defaultExp.toLocaleString();
+        }
+      });
+    }
+
+    if (inputHostOnly && inputDomain) {
+      inputDomain.disabled = inputHostOnly.checked;
+      inputHostOnly.addEventListener('change', e => {
+        inputDomain.disabled = e.target.checked;
+      });
+    }
     return form;
   }
 

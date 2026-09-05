@@ -310,10 +310,12 @@ document.addEventListener('DOMContentLoaded', async event => {
       const exportedCookie = cookies[cookieId].cookie;
       const cleanDomain = (exportedCookie.domain || '').replace(/^\./, '');
       if (!cleanDomain) continue;
-      const url =
-        (exportedCookie.secure ? 'https://' : 'http://') +
-        cleanDomain +
-        (exportedCookie.path || '/');
+      const protocol = exportedCookie.secure ? 'https://' : 'http://';
+      const path =
+        exportedCookie.path && exportedCookie.path.startsWith('/')
+          ? exportedCookie.path
+          : '/';
+      const url = `${protocol}${cleanDomain}${path}`;
       await cookieHandler.removeCookie(exportedCookie.name, url);
     }
     alert('已成功清空浏览器中所有网站的 Cookie！');

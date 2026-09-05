@@ -123,8 +123,12 @@ export class CookieHealthAdvisor {
   static autoHarden(cookies) {
     const sensitiveNameRegex =
       /(session|sess|auth|token|jwt|id|key|secret|pass|login|account)/i;
-    return (cookies || []).map(c => {
-      const copy = { ...c };
+    const list = Array.isArray(cookies)
+      ? cookies
+      : Object.values(cookies || {});
+    return list.map(c => {
+      const raw = c?.cookie || c || {};
+      const copy = { ...raw };
       copy.secure = true;
       if (
         !copy.sameSite ||
