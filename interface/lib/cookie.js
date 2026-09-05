@@ -481,7 +481,7 @@ export class Cookie {
     );
     expirationInput.disabled = inputValue;
     if (inputValue) {
-      expirationInput.value = 'No Expiration';
+      expirationInput.value = '无过期时间 (Session)';
       return;
     }
     if (!this.cookie.expirationDate) {
@@ -574,7 +574,7 @@ export class Cookie {
   formatExpirationForDisplay() {
     return this.cookie.expirationDate
       ? new Date(this.cookie.expirationDate * 1000)
-      : 'No Expiration';
+      : '无过期时间 (Session)';
   }
 
   /**
@@ -582,11 +582,12 @@ export class Cookie {
    * @return {string}
    */
   formatExpirationForDisplayShort() {
+    if (!this.cookie.expirationDate) {
+      return '无过期时间 (Session)';
+    }
     const date = new Date(this.cookie.expirationDate * 1000);
     date.setMilliseconds(0);
-    return this.cookie.expirationDate
-      ? date.toISOString().split('.')[0] + 'Z'
-      : 'No Expiration';
+    return date.toISOString().split('.')[0] + 'Z';
   }
 
   /**

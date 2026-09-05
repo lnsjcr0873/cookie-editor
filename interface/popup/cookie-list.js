@@ -416,18 +416,8 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
       console.log('saving cookie...');
 
       const cookieContainer = loadedCookies[id];
-      let cookie = cookieContainer ? cookieContainer.cookie : null;
-      let oldName;
-      let oldHostOnly;
-
-      if (cookie) {
-        oldName = cookie.name;
-        oldHostOnly = cookie.hostOnly;
-      } else {
-        cookie = {};
-        oldName = name;
-        oldHostOnly = hostOnly;
-      }
+      const oldCookie = cookieContainer ? { ...cookieContainer.cookie } : null;
+      const cookie = cookieContainer ? cookieContainer.cookie : {};
 
       cookie.name = name;
       cookie.value = value;
@@ -463,9 +453,17 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
       }
 
       try {
-        if (oldName !== name || oldHostOnly !== hostOnly) {
-          const oldUrl = getCookieCanonicalUrl(cookie, getCurrentTabUrl());
-          await removeCookie(oldName, oldUrl);
+        const isIdentityChanged =
+          oldCookie &&
+          (oldCookie.name !== name ||
+            oldCookie.domain !== domain ||
+            oldCookie.path !== path ||
+            oldCookie.hostOnly !== hostOnly ||
+            oldCookie.secure !== secure);
+
+        if (isIdentityChanged) {
+          const oldUrl = getCookieCanonicalUrl(oldCookie, getCurrentTabUrl());
+          await removeCookie(oldCookie.name, oldUrl);
         }
 
         const newUrl = getCookieCanonicalUrl(cookie, getCurrentTabUrl());
@@ -1449,22 +1447,22 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
 
     const decoded = JWTInspector.decodeJWT(token);
     if (!decoded) {
-      sendNotification('Not a valid JWT token');
+      sendNotification('无效的 JWT Token');
       return;
     }
 
     if (decoded.isExpired) {
       statusBanner.style.background = '#fee2e2';
       statusBanner.style.color = '#991b1b';
-      statusBanner.textContent = `⚠️ Expired at ${decoded.formattedExp}`;
+      statusBanner.textContent = `⚠️ 已于 ${decoded.formattedExp} 过期`;
     } else if (decoded.expiresAt) {
       statusBanner.style.background = '#dcfce7';
       statusBanner.style.color = '#166534';
-      statusBanner.textContent = `✓ Valid until ${decoded.formattedExp} (in ${Math.round(decoded.remainingSeconds / 60)} mins)`;
+      statusBanner.textContent = `✓ 有效期至 ${decoded.formattedExp} (约剩 ${Math.round(decoded.remainingSeconds / 60)} 分钟)`;
     } else {
       statusBanner.style.background = '#e0e7ff';
       statusBanner.style.color = '#3730a3';
-      statusBanner.textContent = '✓ Valid JWT (No exp claim)';
+      statusBanner.textContent = '✓ 有效 JWT (无 exp 过期声明)';
     }
 
     headerView.textContent = JSON.stringify(decoded.header, null, 2);
@@ -1526,7 +1524,7 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
       cookieDiffManager.recordSnapshot(
         domain,
         cookies,
-        `Snapshot (${new Date().toLocaleTimeString()})`
+        `快照 (${new Date().toLocaleTimeString()})`
       );
     }
 
@@ -2001,7 +1999,8 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
         const allCookies = await cookieHandler.getAllCookies();
         const hardened = CookieHealthAdvisor.autoHarden(allCookies);
         for (const c of hardened) {
-          await cookieHandler.saveCookie(c, getCurrentTabUrl());
+          const cookieUrl = getCookieCanonicalUrl(c, getCurrentTabUrl());
+          await cookieHandler.saveCookie(c, cookieUrl);
         }
         sendNotification(
           '⚡ 已一键加固所有 Cookie（开启 Secure、SameSite=Lax）！'

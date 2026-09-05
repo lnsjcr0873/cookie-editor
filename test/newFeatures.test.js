@@ -412,3 +412,40 @@ test('CurlFormat.parse - handles unquoted -b and --cookie arguments', () => {
   assert.equal(parsed2[0].name, 'theme');
   assert.equal(parsed2[0].value, 'light');
 });
+
+test('CookieDiffManager.computeDiff - normalizes domain leading dot comparison', () => {
+  const oldList = [
+    { name: 'sid', value: '123', domain: '.example.com', path: '/' },
+  ];
+  const newList = [
+    { name: 'sid', value: '123', domain: 'example.com', path: '/' },
+  ];
+  const diff = CookieDiffManager.computeDiff(oldList, newList);
+  assert.equal(diff.unchanged.length, 1);
+  assert.equal(diff.added.length, 0);
+  assert.equal(diff.removed.length, 0);
+  assert.equal(diff.modified.length, 0);
+});
+
+test('Cookie.formatExpirationForDisplay and formatExpirationForDisplayShort', () => {
+  const sessionCookie = new Cookie('1', { name: 'sess', value: '1' }, null);
+  assert.equal(
+    sessionCookie.formatExpirationForDisplay(),
+    '无过期时间 (Session)'
+  );
+  assert.equal(
+    sessionCookie.formatExpirationForDisplayShort(),
+    '无过期时间 (Session)'
+  );
+
+  const persistentCookie = new Cookie(
+    '2',
+    { name: 'persist', value: '1', expirationDate: 1800000000 },
+    null
+  );
+  assert.ok(persistentCookie.formatExpirationForDisplay() instanceof Date);
+  assert.equal(
+    persistentCookie.formatExpirationForDisplayShort(),
+    '2027-01-15T08:00:00Z'
+  );
+});

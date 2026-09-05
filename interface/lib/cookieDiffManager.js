@@ -66,15 +66,18 @@ export class CookieDiffManager {
    * @return {{added: Array, removed: Array, modified: Array, unchanged: Array}}
    */
   static computeDiff(oldList = [], newList = []) {
+    const normalizeKey = c => {
+      const name = c.name || '';
+      const domain = (c.domain || '').replace(/^\.+/, '');
+      const path = c.path || '/';
+      return `${name}|${domain}|${path}`;
+    };
+
     const oldMap = new Map();
-    (oldList || []).forEach(c =>
-      oldMap.set(`${c.name}|${c.domain || ''}|${c.path || '/'}`, c)
-    );
+    (oldList || []).forEach(c => oldMap.set(normalizeKey(c), c));
 
     const newMap = new Map();
-    (newList || []).forEach(c =>
-      newMap.set(`${c.name}|${c.domain || ''}|${c.path || '/'}`, c)
-    );
+    (newList || []).forEach(c => newMap.set(normalizeKey(c), c));
 
     const added = [];
     const removed = [];
