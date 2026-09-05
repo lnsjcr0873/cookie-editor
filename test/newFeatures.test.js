@@ -15,6 +15,9 @@ import { PlaywrightFormat } from '../interface/lib/playwrightFormat.js';
 import { ProfileManager } from '../interface/lib/profileManager.js';
 import { PythonFormat } from '../interface/lib/pythonFormat.js';
 import { SmartFilter } from '../interface/lib/smartFilter.js';
+import { StorageBridge } from '../interface/lib/storageBridge.js';
+import { CookieHandlerPopup } from '../interface/popup/cookieHandlerPopup.js';
+import { createSinonBrowserMock } from './mocks/sinonBrowserMock.js';
 
 test('CurlFormat - formats cookies into curl header argument and parses back', () => {
   const cookiesMap = {
@@ -487,4 +490,74 @@ test('CookieHealthAdvisor.autoHarden - handles wrapped cookie map correctly', ()
   assert.equal(hardened[0].secure, true);
   assert.equal(hardened[0].httpOnly, true);
   assert.equal(hardened[0].sameSite, 'lax');
+});
+
+test('CookieHandlerPopup - onCookiesChanged matches exact domain, subdomains, and filters storeId', () => {
+  const { detector } = createSinonBrowserMock();
+  const handler = new CookieHandlerPopup(detector);
+  handler.currentTab = {
+    id: 1,
+    url: 'https://sub.domain.com/app',
+    cookieStoreId: '0',
+  };
+
+  let emitted = 0;
+  handler.on('cookiesChanged', () => {
+    emitted++;
+  });
+
+  // 1. Cookie matching parent domain
+  handler.onCookiesChanged({
+    cookie: { domain: '.domain.com', storeId: '0' },
+  });
+  assert.equal(emitted, 1);
+
+  // 2. Cookie matching exact subdomain
+  handler.onCookiesChanged({
+    cookie: { domain: 'sub.domain.com', storeId: '0' },
+  });
+  assert.equal(emitted, 2);
+
+  // 3. Substring false positive (e.g. notdomain.com)
+  handler.onCookiesChanged({
+    cookie: { domain: 'notdomain.com', storeId: '0' },
+  });
+  assert.equal(emitted, 2);
+
+  // 4. Mismatched storeId
+  handler.onCookiesChanged({
+    cookie: { domain: 'sub.domain.com', storeId: 'firefox-container-5' },
+  });
+  assert.equal(emitted, 2);
+});
+
+test('Cookie.formatExpirationForDisplay - handles NaN gracefully', () => {
+  const nanCookie = new Cookie(
+    'nan-test',
+    { name: 'bad_exp', expirationDate: NaN },
+    null
+  );
+  assert.equal(nanCookie.formatExpirationForDisplay(), '无过期时间 (Session)');
+  assert.equal(
+    nanCookie.formatExpirationForDisplayShort(),
+    '无过期时间 (Session)'
+  );
+});
+
+test('StorageBridge.executeOnTab - falls back to tabs.executeScript if scripting API unavailable', async () => {
+  const detector = {
+    getApi() {
+      return {
+        tabs: {
+          async executeScript(tabId, details) {
+            return [{ key: 'value' }];
+          },
+        },
+      };
+    },
+  };
+
+  const bridge = new StorageBridge(detector);
+  const result = await bridge.executeOnTab(10, () => ({ key: 'value' }));
+  assert.deepEqual(result, { key: 'value' });
 });

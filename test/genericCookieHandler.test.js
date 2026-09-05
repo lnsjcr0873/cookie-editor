@@ -145,7 +145,7 @@ test('GenericCookieHandler - removeCookie on Safari queries all cookies and remo
   });
   assert.deepEqual(stubs.cookies.remove.secondCall.args[0], {
     name: 'session_token',
-    url: 'http://.example.com',
+    url: 'http://example.com',
     storeId: '0',
   });
 });

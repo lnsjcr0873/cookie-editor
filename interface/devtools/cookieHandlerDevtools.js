@@ -117,10 +117,17 @@ export class CookieHandlerDevtools extends GenericCookieHandler {
       this.emit('cookiesChanged', changeInfo);
       return;
     }
-    const domain = changeInfo.cookie.domain.startsWith('.')
-      ? changeInfo.cookie.domain.substring(1)
-      : changeInfo.cookie.domain;
-    if (this.currentTab.url.includes(domain)) {
+    const domain = changeInfo.cookie.domain.replace(/^\./, '').toLowerCase();
+    let tabHostname = '';
+    try {
+      tabHostname = new URL(this.currentTab.url).hostname.toLowerCase();
+    } catch {
+      tabHostname = '';
+    }
+    if (
+      tabHostname &&
+      (tabHostname === domain || tabHostname.endsWith('.' + domain))
+    ) {
       this.emit('cookiesChanged', changeInfo);
     }
   };

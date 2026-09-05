@@ -58,20 +58,29 @@ export class CookieHandlerPopup extends GenericCookieHandler {
     if (!changeInfo?.cookie?.domain) {
       return;
     }
-    const domain = changeInfo.cookie.domain.startsWith('.')
-      ? changeInfo.cookie.domain.substring(1)
-      : changeInfo.cookie.domain;
+    const domain = changeInfo.cookie.domain.replace(/^\./, '').toLowerCase();
     const tabStoreId = this.currentTab?.cookieStoreId;
-    const storeMatches =
-      !tabStoreId ||
-      tabStoreId === '0' ||
-      changeInfo.cookie.storeId === tabStoreId ||
-      (tabStoreId === undefined && changeInfo.cookie.storeId === '0');
+    const normTabStore =
+      !tabStoreId || tabStoreId === 'firefox-default' ? '0' : tabStoreId;
+    const normCookieStore =
+      !changeInfo.cookie.storeId ||
+      changeInfo.cookie.storeId === 'firefox-default'
+        ? '0'
+        : changeInfo.cookie.storeId;
+    const storeMatches = normTabStore === normCookieStore;
+
+    let tabHostname = '';
+    if (this.currentTab?.url) {
+      try {
+        tabHostname = new URL(this.currentTab.url).hostname.toLowerCase();
+      } catch {
+        tabHostname = '';
+      }
+    }
 
     if (
-      this.currentTab &&
-      this.currentTab.url &&
-      this.currentTab.url.includes(domain) &&
+      tabHostname &&
+      (tabHostname === domain || tabHostname.endsWith('.' + domain)) &&
       storeMatches
     ) {
       this.emit('cookiesChanged', changeInfo);

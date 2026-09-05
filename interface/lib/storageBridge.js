@@ -19,23 +19,35 @@ export class StorageBridge {
    */
   async executeOnTab(tabId, func, args = []) {
     const api = this.browserDetector.getApi();
-    if (!tabId || !api.scripting || !api.scripting.executeScript) {
+    if (!tabId) {
       return null;
     }
-    try {
-      const results = await api.scripting.executeScript({
-        target: { tabId: tabId },
-        func: func,
-        args: args,
-      });
-      return results && results[0] ? results[0].result : null;
-    } catch (error) {
-      console.warn(
-        'StorageBridge executeOnTab warning:',
-        error.message || error
-      );
-      return null;
+    if (api.scripting && api.scripting.executeScript) {
+      try {
+        const results = await api.scripting.executeScript({
+          target: { tabId: tabId },
+          func: func,
+          args: args,
+        });
+        return results && results[0] ? results[0].result : null;
+      } catch (error) {
+        console.warn(
+          'StorageBridge executeOnTab warning:',
+          error.message || error
+        );
+        return null;
+      }
+    } else if (api.tabs && api.tabs.executeScript) {
+      try {
+        const code = `(${func.toString()})(...${JSON.stringify(args)})`;
+        const results = await api.tabs.executeScript(tabId, { code });
+        return results && results[0] !== undefined ? results[0] : null;
+      } catch (error) {
+        console.warn('StorageBridge tabs.executeScript warning:', error);
+        return null;
+      }
     }
+    return null;
   }
 
   /**

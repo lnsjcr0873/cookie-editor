@@ -572,9 +572,14 @@ export class Cookie {
    * @return {string}
    */
   formatExpirationForDisplay() {
-    return this.cookie.expirationDate
-      ? new Date(this.cookie.expirationDate * 1000)
-      : '无过期时间 (Session)';
+    if (!this.cookie.expirationDate) {
+      return '无过期时间 (Session)';
+    }
+    const date = new Date(this.cookie.expirationDate * 1000);
+    if (isNaN(date.getTime())) {
+      return '无过期时间 (Session)';
+    }
+    return date;
   }
 
   /**

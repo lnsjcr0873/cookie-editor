@@ -86,3 +86,32 @@ test('CookieHandlerDevtools - getAllCookies sends storeId to background script',
     },
   });
 });
+
+test('CookieHandlerDevtools - onCookiesChanged triggers only for matching hostname or subdomain', async () => {
+  const { detector } = createSinonBrowserMock();
+  const handler = await createInitializedDevtoolsHandler(detector, {
+    url: 'https://app.example.com/dashboard',
+  });
+
+  let emitCount = 0;
+  handler.on('cookiesChanged', () => {
+    emitCount++;
+  });
+
+  // 1. Exact match on parent domain
+  handler.onCookiesChanged({ cookie: { domain: 'example.com' } });
+  assert.equal(emitCount, 1);
+
+  // 2. Exact match on subdomain
+  handler.onCookiesChanged({ cookie: { domain: '.app.example.com' } });
+  assert.equal(emitCount, 2);
+
+  // 3. Unrelated domain that contains substring (e.g. notexample.com)
+  handler.onCookiesChanged({ cookie: { domain: 'notexample.com' } });
+  assert.equal(emitCount, 2); // Should not emit!
+
+  // 4. Tab with query param containing domain shouldn't falsely match
+  handler.currentTab = { url: 'https://otherdomain.com/?redirect=example.com' };
+  handler.onCookiesChanged({ cookie: { domain: 'example.com' } });
+  assert.equal(emitCount, 2); // Should not emit!
+});

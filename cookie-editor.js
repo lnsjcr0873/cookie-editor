@@ -210,6 +210,7 @@ import { PermissionHandler } from './interface/lib/permissionHandler.js';
         sendMessageToAllTabs('optionsChanged', {
           from: request?.params?.from,
         });
+        sendResponse({ success: true });
         return true;
       }
     }
@@ -263,10 +264,18 @@ import { PermissionHandler } from './interface/lib/permissionHandler.js';
    */
   function sendMessageToTab(tabId, type, data) {
     if (tabId in connections) {
-      connections[tabId].postMessage({
-        type: type,
-        data: data,
-      });
+      try {
+        connections[tabId].postMessage({
+          type: type,
+          data: data,
+        });
+      } catch (err) {
+        console.warn(
+          'Failed to send message to tab ' + tabId + ', removing stale port',
+          err
+        );
+        delete connections[tabId];
+      }
     }
   }
 

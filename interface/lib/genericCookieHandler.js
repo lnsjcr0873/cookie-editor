@@ -152,7 +152,7 @@ export class GenericCookieHandler extends EventEmitter {
    * @param {boolean} isRecursive
    * @return {Promise}
    */
-  async removeCookie(name, url, isRecursive = false) {
+  async removeCookie(name, url, isRecursive = false, storeId = null) {
     // Bad hack on safari because cookies needs to have the very exact same domain
     // to be able to delete it.
     // TODO: Check if this hack is needed on devtools.
@@ -160,7 +160,11 @@ export class GenericCookieHandler extends EventEmitter {
       const cookies = await this.getAllCookies();
       for (const cookie of cookies) {
         if (cookie.name === name) {
-          await this.removeCookie(name, 'http://' + cookie.domain, true);
+          const cleanDomain = (cookie.domain || '').replace(/^\./, '');
+          const domainUrl = cleanDomain
+            ? 'http://' + cleanDomain
+            : this.currentTab?.url;
+          await this.removeCookie(name, domainUrl, true, storeId);
         }
       }
     } else {
@@ -168,9 +172,9 @@ export class GenericCookieHandler extends EventEmitter {
         name: name,
         url: url || this.currentTab?.url,
       };
-      const storeId = this.currentTab?.cookieStoreId;
-      if (storeId) {
-        removeDetails.storeId = storeId;
+      const targetStoreId = storeId || this.currentTab?.cookieStoreId;
+      if (targetStoreId) {
+        removeDetails.storeId = targetStoreId;
       }
       return this.browserDetector.getApi().cookies.remove(removeDetails);
     }
