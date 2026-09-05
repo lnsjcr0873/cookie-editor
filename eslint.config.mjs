@@ -42,6 +42,8 @@ export default [
       'prettier/prettier': 'error',
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
+      'require-jsdoc': 'off',
+      'valid-jsdoc': 'off',
     },
   },
 

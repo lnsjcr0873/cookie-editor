@@ -60,7 +60,7 @@ import { PermissionHandler } from './interface/lib/permissionHandler.js';
    */
   function handleMessage(request, sender, sendResponse) {
     console.log('message received: ' + (request.type || 'unknown'));
-    switch (request.type) {
+    switch (request?.type) {
       case 'getTabs': {
         browserDetector
           .getApi()
@@ -75,6 +75,24 @@ import { PermissionHandler } from './interface/lib/permissionHandler.js';
         return true;
       }
       case 'getCurrentTab': {
+        if (request?.params?.tabId) {
+          browserDetector
+            .getApi()
+            .tabs.get(request.params.tabId)
+            .then(
+              tab => {
+                sendResponse([tab]);
+              },
+              error => {
+                console.error('Failed to get tab by tabId', error);
+                sendResponse({
+                  success: false,
+                  error: error?.message || String(error),
+                });
+              }
+            );
+          return true;
+        }
         browserDetector
           .getApi()
           .tabs.query({ active: true, currentWindow: true })
@@ -88,6 +106,10 @@ import { PermissionHandler } from './interface/lib/permissionHandler.js';
         return true;
       }
       case 'getAllCookies': {
+        if (!request?.params?.url) {
+          sendResponse({ success: false, error: 'Missing url parameter' });
+          return true;
+        }
         const getAllCookiesParams = {
           url: request.params.url,
         };
@@ -107,6 +129,10 @@ import { PermissionHandler } from './interface/lib/permissionHandler.js';
         return true;
       }
       case 'saveCookie': {
+        if (!request?.params?.cookie) {
+          sendResponse({ success: false, error: 'Missing cookie parameter' });
+          return true;
+        }
         browserDetector
           .getApi()
           .cookies.set(request.params.cookie)
@@ -125,10 +151,17 @@ import { PermissionHandler } from './interface/lib/permissionHandler.js';
         return true;
       }
       case 'removeCookie': {
+        if (!request?.params) {
+          sendResponse({ success: false, error: 'Missing remove parameters' });
+          return true;
+        }
         const removeParams = {
           name: request.params.name,
           url: request.params.url,
         };
+        if (request.params.storeId) {
+          removeParams.storeId = request.params.storeId;
+        }
         browserDetector
           .getApi()
           .cookies.remove(removeParams)
@@ -142,6 +175,10 @@ import { PermissionHandler } from './interface/lib/permissionHandler.js';
         return true;
       }
       case 'permissionsContains': {
+        if (!request?.params) {
+          sendResponse(false);
+          return true;
+        }
         permissionHandler
           .checkPermissions(request.params)
           .then(sendResponse, error => {
@@ -154,6 +191,10 @@ import { PermissionHandler } from './interface/lib/permissionHandler.js';
         return true;
       }
       case 'permissionsRequest': {
+        if (!request?.params) {
+          sendResponse(false);
+          return true;
+        }
         permissionHandler
           .requestPermission(request.params)
           .then(sendResponse, error => {
@@ -167,7 +208,7 @@ import { PermissionHandler } from './interface/lib/permissionHandler.js';
       }
       case 'optionsChanged': {
         sendMessageToAllTabs('optionsChanged', {
-          from: request.params.from,
+          from: request?.params?.from,
         });
         return true;
       }

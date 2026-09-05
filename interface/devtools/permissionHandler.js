@@ -21,8 +21,21 @@ export class PermissionHandler {
    * @return {boolean} true if it is possible to check, otherwise false.
    */
   canHavePermissions(url) {
-    if (url.indexOf('about:') === 0 || url.indexOf('edge:') === 0) {
+    if (!url) {
       return false;
+    }
+    const impossibleUrls = [
+      'about:',
+      'moz-extension:',
+      'chrome:',
+      'chrome-extension:',
+      'edge:',
+      'safari-web-extension:',
+    ];
+    for (const impossibleUrl of impossibleUrls) {
+      if (url.indexOf(impossibleUrl) === 0) {
+        return false;
+      }
     }
     return true;
   }

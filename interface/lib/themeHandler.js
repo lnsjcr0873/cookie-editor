@@ -11,19 +11,27 @@ export class ThemeHandler {
   constructor(optionHandler) {
     this.optionHandler = optionHandler;
     optionHandler.on('optionsChanged', this.onOptionsChanged);
-    window
-      .matchMedia('(prefers-color-scheme: dark)')
-      .addEventListener('change', event => {
-        console.log('theme changed!');
-        this.updateTheme();
-      });
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      window
+        .matchMedia('(prefers-color-scheme: dark)')
+        .addEventListener('change', () => {
+          console.log('theme changed!');
+          this.updateTheme();
+        });
+    }
   }
 
   /**
    * Handles which theme the page will be rendered with.
    */
   updateTheme() {
-    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    if (typeof document === 'undefined' || !document.body) {
+      return;
+    }
+    const prefersDarkScheme =
+      typeof window !== 'undefined' && window.matchMedia
+        ? window.matchMedia('(prefers-color-scheme: dark)')
+        : { matches: false };
     const selectedTheme = this.optionHandler.getTheme();
     switch (selectedTheme) {
       case Themes.Light:

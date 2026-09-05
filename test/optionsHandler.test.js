@@ -76,3 +76,29 @@ test('OptionsHandler - validation methods', () => {
   assert.equal(optionsHandler.isThemeValid(Themes.Dark), true);
   assert.equal(optionsHandler.isThemeValid('non_existent_theme'), false);
 });
+
+test('GenericStorageHandler - getLocal(null) passes null to storage.get and returns full object', async () => {
+  const { detector, stubs } = createSinonBrowserMock();
+  const allData = { key1: 'val1', profiles_test: [{ id: '1' }] };
+  stubs.storage.local.get.resolves(allData);
+
+  const storageHandler = new GenericStorageHandler(detector);
+  const result = await storageHandler.getLocal(null);
+
+  assert.deepEqual(result, allData);
+  assert.equal(stubs.storage.local.get.calledOnce, true);
+  assert.equal(stubs.storage.local.get.firstCall.args[0], null);
+});
+
+test('GenericStorageHandler - setLocal with null data calls storage.local.remove', async () => {
+  const { detector, stubs } = createSinonBrowserMock();
+  stubs.storage.local.remove.resolves();
+
+  const storageHandler = new GenericStorageHandler(detector);
+  await storageHandler.setLocal('key_to_delete', null);
+
+  assert.equal(stubs.storage.local.remove.calledOnce, true);
+  assert.deepEqual(stubs.storage.local.remove.firstCall.args[0], [
+    'key_to_delete',
+  ]);
+});

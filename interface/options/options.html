@@ -1,200 +1,236 @@
 <!doctype html>
 
-<html lang="en">
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="options.js" type="module" defer></script>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="../theme/switch.css" />
+    <title>Cookie-Editor 设置选项</title>
+  </head>
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="options.js" type="module" defer></script>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="../theme/switch.css" />
-  <title>Cookie-Editor Options</title>
-</head>
+  <body>
+    <div class="container">
+      <fieldset>
+        <legend>⚙️ 基础偏好设置</legend>
+        <div class="input-container">
+          <label for="advanced-cookie">默认显示高级 Cookie 属性</label>
+          <label class="switch">
+            <input
+              type="checkbox"
+              id="advanced-cookie"
+              aria-describedby="advanced-cookie-hint" />
+            <span class="slider"></span>
+          </label>
+          <div class="hint" id="advanced-cookie-hint">
+            开启时：展开 Cookie
+            时直接显示域名、路径、过期时间、SameSite、Secure、HttpOnly
+            等全部高级属性。<br />
+            关闭时：默认仅显示 Cookie 的名称和值，更简洁。
+          </div>
+        </div>
 
-<body>
-  <div class="container">
-    <fieldset>
-      <legend>Options</legend>
-      <div class="input-container">
-        <label for="advanced-cookie">Show Advanced Cookie Options</label>
-        <label class="switch">
-          <input type="checkbox" id="advanced-cookie" aria-describedby="advanced-cookie-hint" />
-          <span class="slider"></span>
-        </label>
-        <div class="hint" id="advanced-cookie-hint">
-          When Enabled, all the values of a cookie are visible in the
-          interface.<br />
-          When Disabled, only the name and the value of the cookie are visible
-          in the interface.
+        <div class="input-container">
+          <label for="devtool-show">启用 DevTools 开发者工具面板</label>
+          <label class="switch">
+            <input
+              type="checkbox"
+              id="devtool-show"
+              aria-describedby="devtool-show-hint" />
+            <span class="slider"></span>
+          </label>
+          <div class="hint" id="devtool-show-hint">
+            开启后，F12 开发者工具中将出现独立的 Cookie-Editor
+            标签页。修改此选项后需重新打开开发者工具生效。
+          </div>
         </div>
-      </div>
 
-      <div class="input-container">
-        <label for="devtool-show">Enable Devtool panel</label>
-        <label class="switch">
-          <input type="checkbox" id="devtool-show" aria-describedby="devtool-show-hint" />
-          <span class="slider"></span>
-        </label>
-        <div class="hint" id="devtool-show-hint">
-          When Enabled, Cookie-Editor will be added to the DevTools tabs.
-          Devtools needs to be restarted to take effect when turning this
-          option off.
+        <div class="input-container">
+          <label for="animations-enabled">启用界面动画与过渡效果</label>
+          <label class="switch">
+            <input
+              type="checkbox"
+              id="animations-enabled"
+              aria-describedby="animations-enabled-hint" />
+            <span class="slider"></span>
+          </label>
+          <div class="hint" id="animations-enabled-hint">
+            开启后，界面在展开、折叠或数值变化时将展示流畅的动画效果。
+          </div>
         </div>
-      </div>
 
-      <div class="input-container">
-        <label for="animations-enabled">Enable Animations</label>
-        <label class="switch">
-          <input type="checkbox" id="animations-enabled" aria-describedby="animations-enabled-hint" />
-          <span class="slider"></span>
-        </label>
-        <div class="hint" id="animations-enabled-hint">
-          When Enabled, Cookie-Editor will show transitions and other various
-          animations in the interface. This is for appearance only.
+        <div class="input-container">
+          <label for="export-format">默认导出格式</label>
+          <select id="export-format" aria-describedby="export-format-hint">
+            <option value="json">JSON 格式</option>
+            <option value="headerstring">请求头字符串 (Header String)</option>
+            <option value="netscape">Netscape 格式</option>
+            <option value="curl">cURL 命令行</option>
+            <option value="playwright">Playwright JSON</option>
+            <option value="python">Python requests 脚本</option>
+            <option value="encrypted">AES 加密会话包</option>
+            <option value="ask">每次点击时弹出选择菜单</option>
+          </select>
+          <div class="hint" id="export-format-hint">
+            设置点击主界面导出按钮时的默认行为。选择“每次点击时弹出选择菜单”可在导出时灵活选择格式。
+          </div>
         </div>
-      </div>
 
-      <div class="input-container">
-        <label for="export-format">Export Format</label>
-        <select id="export-format" aria-describedby="export-format-hint">
-          <option value="json">JSON</option>
-          <option value="headerstring">Header String</option>
-          <option value="netscape">Netscape</option>
-          <option value="ask">Ask every time</option>
-        </select>
-        <div class="hint" id="export-format-hint">
-          Selects the behavior of the export button. When "Ask every time" is
-          selected, a menu asking you to chose the format will show up when
-          you press the export button.
+        <div class="input-container">
+          <label for="extra-info">列表标题旁展示的额外属性</label>
+          <select id="extra-info" aria-describedby="extra-info-hint">
+            <option value="nothing">不显示 (Nothing)</option>
+            <option value="value">值 (Value)</option>
+            <option value="domain">域名 (Domain)</option>
+            <option value="path">路径 (Path)</option>
+            <option value="expiration">过期时间 (Expiration)</option>
+            <option value="samesite">SameSite</option>
+            <option value="hostonly">仅主机 (Host Only)</option>
+            <option value="session">会话 (Session)</option>
+            <option value="secure">安全 (Secure)</option>
+            <option value="httponly">仅Http (Http Only)</option>
+          </select>
+          <div class="hint" id="extra-info-hint">
+            在 Cookie
+            列表折叠状态下，在名称右侧展示该附加属性，方便快速预览和筛选定位。
+          </div>
         </div>
-      </div>
 
-      <div class="input-container">
-        <label for="extra-info">Show Extra Information</label>
-        <select id="extra-info" aria-describedby="v-hint">
-          <option value="nothing">Nothing</option>
-          <option value="value">Value</option>
-          <option value="domain">Domain</option>
-          <option value="path">Path</option>
-          <option value="expiration">Expiration</option>
-          <option value="samesite">Same Site</option>
-          <option value="hostonly">Host Only</option>
-          <option value="session">Session</option>
-          <option value="secure">Secure</option>
-          <option value="httponly">Http Only</option>
-        </select>
-        <div class="hint" id="extra-info-hint">
-          Selects one extra element to display next to the cookie name in the
-          interface. This can help you identify quickly which cookie you are
-          looking for.
+        <div class="input-container">
+          <label for="theme">主题外观</label>
+          <select id="theme" aria-describedby="theme-hint">
+            <option value="auto">跟随系统 / 浏览器 (Auto)</option>
+            <option value="light">明亮浅色 (Light)</option>
+            <option value="dark">暗黑深色 (Dark)</option>
+          </select>
+          <div class="hint" id="theme-hint">
+            选择“跟随系统”时，Cookie-Editor
+            将自动匹配您的操作系统或浏览器深色模式设置。
+          </div>
         </div>
-      </div>
 
-      <div class="input-container">
-        <label for="theme">Theme</label>
-        <select id="theme" aria-describedby="theme-hint">
-          <option value="auto">Auto</option>
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
-        <div class="hint" id="theme-hint">
-          When selecting "Auto", Cookie-Editor will match your browser's theme
-          automatically.
+        <div class="input-container">
+          <label for="button-bar-top">操作按钮栏置顶</label>
+          <label class="switch">
+            <input
+              type="checkbox"
+              id="button-bar-top"
+              aria-describedby="button-bar-top-hint" />
+            <span class="slider"></span>
+          </label>
+          <div class="hint" id="button-bar-top-hint">
+            开启后，底部的“添加、清空、导入、导出”按钮栏将被移至列表顶部。
+          </div>
         </div>
-      </div>
+      </fieldset>
 
-      <div class="input-container">
-        <label for="button-bar-top">Place Button Bar on Top</label>
-        <label class="switch">
-          <input type="checkbox" id="button-bar-top" aria-describedby="button-bar-top-hint" />
-          <span class="slider"></span>
-        </label>
-        <div class="hint" id="button-bar-top-hint">
-          When enabled, the main button bar will be placed at the top of the
-          interface instead of the bottom.
+      <fieldset>
+        <legend>👥 多账号配置中心 (Profiles & Sessions)</legend>
+        <div class="hint" style="margin-bottom: 12px">
+          管理全网所有网站已保存的多账号 Profile 与 Cookie/Web Storage
+          隔离环境。您可以导出单个 JSON
+          备份文件以便在不同电脑/浏览器间无缝同步迁移。
         </div>
-      </div>
-      
-      <div class="input-container">
-        <label for="ads-enabled">Show Ads</label>
-        <label class="switch">
-          <input type="checkbox" id="ads-enabled" aria-describedby="ads-enabled-hint" />
-          <span class="slider"></span>
-        </label>
-        <div class="hint" id="ads-enabled-hint">
-          When Enabled, Cookie-Editor will display some small non-intrusive ads at the
-          top of the main interface. These are used to cover the basic operating
-          costs of Cookie-Editor. Feel free to disable them, but keep in mind
-          that I work on Cookie-Editor in free time as a personal project.
-          You can thank me with a nice review!
-          <span class="github-sponsor hidden">
-            You can also
-            <a href="https://github.com/sponsors/Moustachauve/" target="_blank">
-              sponsor me on Github</a>.
-          </span>
+        <div class="input-container">
+          <div class="button-group">
+            <button id="btn-export-all-profiles" type="button">
+              📦 导出全站账号配置备份 (JSON)
+            </button>
+            <button id="btn-import-all-profiles" type="button">
+              📥 导入账号配置备份文件
+            </button>
+            <button id="btn-clear-all-profiles" class="danger" type="button">
+              🗑️ 清空所有已保存配置
+            </button>
+          </div>
+          <input
+            type="file"
+            id="input-file-import-profiles"
+            accept=".json"
+            style="display: none" />
         </div>
-      </div>
-    </fieldset>
+        <div
+          id="profiles-summary"
+          style="
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--secondary-text-color);
+          ">
+          正在加载已保存的账号配置...
+        </div>
+        <div
+          id="profiles-list-container"
+          style="
+            max-height: 220px;
+            overflow-y: auto;
+            margin-top: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 6px;
+          "></div>
+      </fieldset>
 
-    <fieldset>
-      <legend>All Cookies</legend>
-      <div class="notice danger">
-        <svg class="icon">
-          <use href="../sprites/solid.svg#exclamation-triangle"></use>
-        </svg>
-        <strong>Be careful!</strong> Operations in this section will apply to ALL sites.
-         <br />
-        Do not share your cookies exported from here to anyone you do not
-        fully trust. Giving some your cookies this way will give them access
-        to every account you are currently logged in.
-      </div>
-      <div class="input-container">
-        Export All Cookies
-        <div class="button-group">
-          <button id="export-all-json">As JSON</button>
-          <button id="export-all-netscape">As Netscape</button>
+      <fieldset>
+        <legend>🌐 全局所有 Cookie 管理 (跨全网所有站点)</legend>
+        <div class="notice danger">
+          <svg class="icon">
+            <use href="../sprites/solid.svg#exclamation-triangle"></use>
+          </svg>
+          <strong>安全警告：</strong>
+          此区域的操作将影响浏览器中的<strong>全部网站</strong>。<br />
+          切勿将导出的 Cookie
+          文件分享给任何不完全信任的人！他人获取此数据将拥有您全部已登录账号的完整控制权。
         </div>
-        <div class="hint">
-          Header string is not available for browser-wide export since it does
-          not contain information about which site it comes from.
+        <div class="input-container">
+          导出全部网站的 Cookie
+          <div class="button-group">
+            <button id="export-all-json">导出为 JSON 格式</button>
+            <button id="export-all-netscape">导出为 Netscape 格式</button>
+          </div>
+          <div class="hint">
+            由于请求头字符串 (Header String)
+            不包含站点域名信息，因此不支持全局多站点批量导出。
+          </div>
         </div>
-      </div>
-      <div class="input-container">
-        Delete All Cookies
-        <button class="danger" id="delete-all">Delete All</button>
-        <div class="hint danger">
-          This will delete all the cookies on all the site on this browser.
-          This action is irreversible. Be very careful.
+        <div class="input-container">
+          清空全网所有 Cookie
+          <button class="danger" id="delete-all">清空浏览器全部 Cookie</button>
+          <div class="hint danger">
+            此操作将彻底删除本浏览器中保存的所有网站的
+            Cookie。所有网站都需要重新登录。此操作不可逆，请务必谨慎！
+          </div>
         </div>
-      </div>
-    </fieldset>
+      </fieldset>
 
-    <fieldset>
-      <legend>About Cookie-Editor</legend>
-      <p>
-        Cookie-Editor is made by Christophe Gagnier and is fully open source.
-      </p>
-      <p>
-        View the
-        <a href="https://github.com/Moustachauve/cookie-editor" target="_blank">Source code</a>. Read the
-        <a href="https://cookie-editor.com/privacy.html" target="_blank">Privacy Policy</a>. <br />
-        Cookie-Editor is published under
-        <a href="https://github.com/Moustachauve/cookie-editor/blob/master/LICENSE" target="_blank">the GPL-3.0
-          license</a>.
-      </p>
-      <p class="github-sponsor hidden">
-        <em>Are you enjoying Cookie-Editor?</em><br />
-        I would be really greatful if you considered supporting my work by
-        sponsoring me on Github.
-        <a href="https://github.com/sponsors/Moustachauve/" target="_blank">Learn more</a>.
-      </p>
-      <p class="disclaimer">
-        This project is not an official Google project. It is not supported by
-        Google and Google specifically disclaims all warranties as to its
-        quality, merchantability, or fitness for a particular purpose.
-      </p>
-    </fieldset>
-  </div>
-</body>
-
+      <fieldset>
+        <legend>ℹ️ 关于 Cookie-Editor</legend>
+        <p>
+          Cookie-Editor 是一款开源、纯净、强大的多账号与 Cookie/Storage
+          高级管理工具。
+        </p>
+        <p>
+          查看
+          <a
+            href="https://github.com/Moustachauve/cookie-editor"
+            target="_blank"
+            >开源代码仓库</a
+          >。阅读
+          <a href="https://cookie-editor.com/privacy.html" target="_blank"
+            >隐私政策</a
+          >。<br />
+          遵循
+          <a
+            href="https://github.com/Moustachauve/cookie-editor/blob/master/LICENSE"
+            target="_blank"
+            >GPL-3.0 开源许可协议</a
+          >
+          发布。
+        </p>
+        <p class="disclaimer">
+          本项目为独立开源工具，绝不包含任何广告代码或隐私追踪模块，保障您的数据安全与隐私。
+        </p>
+      </fieldset>
+    </div>
+  </body>
 </html>

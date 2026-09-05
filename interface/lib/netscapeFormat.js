@@ -27,18 +27,25 @@ export class NetscapeFormat {
         continue;
       }
 
-      const elements = line.split('\t');
-      if (elements.length != 7) {
+      let elements = line.split('\t');
+      if (elements.length !== 7) {
+        elements = line.split(/\s+/);
+      }
+      if (elements.length < 7) {
         throw new Error('Invalid netscape format');
       }
+      const expNum = Number(elements[4]);
+      const hasExp = !isNaN(expNum) && expNum > 0;
       cookies.push({
         domain: elements[0],
         hostOnly: elements[1].toLowerCase() === 'false',
         path: elements[2],
         secure: elements[3].toLowerCase() === 'true',
         expiration: elements[4],
+        expirationDate: hasExp ? expNum : undefined,
+        session: !hasExp,
         name: elements[5],
-        value: elements[6],
+        value: elements.slice(6).join(' '),
         httpOnly: isHttpOnly,
       });
     }
@@ -58,8 +65,10 @@ export class NetscapeFormat {
       if (!Object.prototype.hasOwnProperty.call(cookies, cookieId)) {
         continue;
       }
-      const cookie = cookies[cookieId].cookie;
-      const secure = cookie.secure.toString().toUpperCase();
+      const rawCookie = cookies[cookieId]?.cookie || cookies[cookieId];
+      if (!rawCookie || !rawCookie.name) continue;
+      const cookie = rawCookie;
+      const secure = Boolean(cookie.secure).toString().toUpperCase();
       let expiration = 0;
 
       if (cookie.session) {
@@ -77,9 +86,9 @@ export class NetscapeFormat {
       const httpOnly = cookie.httpOnly ? httpOnlyPrefix : '';
 
       netscapeCookies +=
-        `\n${httpOnly}${cookie.domain}	${includesSubdomain}	` +
-        `${cookie.path}	${secure}	${expiration}	${cookie.name}` +
-        `	${cookie.value}`;
+        `\n${httpOnly}${cookie.domain || ''}\t${includesSubdomain}\t` +
+        `${cookie.path || '/'}\t${secure}\t${expiration}\t${cookie.name}` +
+        `\t${cookie.value || ''}`;
     }
     return netscapeCookies;
   }

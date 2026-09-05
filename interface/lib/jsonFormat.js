@@ -23,10 +23,15 @@ export class JsonFormat {
       if (!Object.prototype.hasOwnProperty.call(cookies, cookieId)) {
         continue;
       }
-      const exportedCookie = cookies[cookieId].cookie;
-      exportedCookie.storeId = null;
-      if (exportedCookie.sameSite === 'unspecified') {
-        exportedCookie.sameSite = null;
+      const rawCookie = cookies[cookieId]?.cookie || cookies[cookieId];
+      if (!rawCookie || !rawCookie.name) continue;
+      const exportedCookie = { ...rawCookie };
+      delete exportedCookie.storeId;
+      if (
+        exportedCookie.sameSite === 'unspecified' ||
+        exportedCookie.sameSite === null
+      ) {
+        delete exportedCookie.sameSite;
       }
       exportedCookies.push(exportedCookie);
     }

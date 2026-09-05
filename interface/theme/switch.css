@@ -22,21 +22,21 @@
   right: 0;
   bottom: 0;
   background-color: var(--switch-surface-neutral-color);
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
   outline-offset: 2px;
 }
 .slider:before {
   border-radius: 50%;
   position: absolute;
-  content: "";
+  content: '';
   height: 16px;
   width: 16px;
   left: 4px;
   bottom: 3px;
   background-color: var(--switch-surface-handle-color);
-  -webkit-transition: .2s;
-  transition: .2s;
+  -webkit-transition: 0.2s;
+  transition: 0.2s;
 }
 
 input:checked + .slider {

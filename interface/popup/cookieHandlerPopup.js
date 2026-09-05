@@ -33,7 +33,7 @@ export class CookieHandlerPopup extends GenericCookieHandler {
    * @param {*} tabInfo Info about the current tab.
    */
   init = tabInfo => {
-    if (!tabInfo || !tabInfo[0]) {
+    if (!tabInfo || !tabInfo[0] || tabInfo[0].id === undefined) {
       return;
     }
     this.currentTabId = tabInfo[0].id;
@@ -55,11 +55,24 @@ export class CookieHandlerPopup extends GenericCookieHandler {
    *     occurred.
    */
   onCookiesChanged = changeInfo => {
-    const domain = changeInfo.cookie.domain.substring(1);
+    if (!changeInfo?.cookie?.domain) {
+      return;
+    }
+    const domain = changeInfo.cookie.domain.startsWith('.')
+      ? changeInfo.cookie.domain.substring(1)
+      : changeInfo.cookie.domain;
+    const tabStoreId = this.currentTab?.cookieStoreId;
+    const storeMatches =
+      !tabStoreId ||
+      tabStoreId === '0' ||
+      changeInfo.cookie.storeId === tabStoreId ||
+      (tabStoreId === undefined && changeInfo.cookie.storeId === '0');
+
     if (
       this.currentTab &&
-      this.currentTab.url.indexOf(domain) !== -1 &&
-      changeInfo.cookie.storeId === (this.currentTab.cookieStoreId || '0')
+      this.currentTab.url &&
+      this.currentTab.url.includes(domain) &&
+      storeMatches
     ) {
       this.emit('cookiesChanged', changeInfo);
     }
@@ -81,7 +94,7 @@ export class CookieHandlerPopup extends GenericCookieHandler {
         const tabInfo = await this.browserDetector
           .getApi()
           .tabs.query({ active: true, currentWindow: true });
-        if (tabInfo && tabInfo.length > 0) {
+        if (tabInfo && tabInfo.length > 0 && tabInfo[0]) {
           this.updateCurrentTab(tabInfo);
         }
       } catch (error) {
@@ -99,7 +112,7 @@ export class CookieHandlerPopup extends GenericCookieHandler {
       const tabInfo = await this.browserDetector
         .getApi()
         .tabs.query({ active: true, currentWindow: true });
-      if (tabInfo && tabInfo.length > 0) {
+      if (tabInfo && tabInfo.length > 0 && tabInfo[0]) {
         this.updateCurrentTab(tabInfo);
       }
     } catch (error) {
@@ -112,7 +125,7 @@ export class CookieHandlerPopup extends GenericCookieHandler {
    * @param {object} tabInfo Info about the new current tab.
    */
   updateCurrentTab = tabInfo => {
-    if (!tabInfo || !tabInfo[0]) {
+    if (!tabInfo || !tabInfo[0] || tabInfo[0].id === undefined) {
       return;
     }
     const newTab =

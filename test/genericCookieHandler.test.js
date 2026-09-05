@@ -149,3 +149,61 @@ test('GenericCookieHandler - removeCookie on Safari queries all cookies and remo
     storeId: '0',
   });
 });
+
+test('GenericCookieHandler - prepareCookie preserves session cookie without expirationDate (never null or 0)', () => {
+  const { detector } = createSinonBrowserMock({ browserName: 'chrome' });
+  const handler = new GenericCookieHandler(detector);
+  handler.currentTab = { url: 'https://example.com/login' };
+
+  // Case 1: No expirationDate provided
+  const sessionCookie1 = {
+    name: 'AUTH_SESSION_ID',
+    value: 'secret_jwt_token',
+    domain: '.example.com',
+    path: '/',
+    secure: true,
+    httpOnly: true,
+  };
+  const prepared1 = handler.prepareCookie(
+    sessionCookie1,
+    'https://example.com/login'
+  );
+  assert.equal(prepared1.name, 'AUTH_SESSION_ID');
+  assert.equal(prepared1.value, 'secret_jwt_token');
+  assert.equal(prepared1.expirationDate, undefined); // Crucial! Must be undefined, NOT null
+  assert.equal(prepared1.url, 'https://example.com/login');
+
+  // Case 2: Explicit session: true flag with undefined/null expirationDate
+  const sessionCookie2 = {
+    name: 'connect.sid',
+    value: 's%3A123',
+    session: true,
+    expirationDate: null,
+    domain: 'sub.example.com',
+  };
+  const prepared2 = handler.prepareCookie(sessionCookie2, '');
+  assert.equal(prepared2.expirationDate, undefined);
+  assert.equal(prepared2.url, 'http://sub.example.com/');
+});
+
+test('GenericCookieHandler - prepareCookie handles hostOnly cookies properly', () => {
+  const { detector } = createSinonBrowserMock({ browserName: 'chrome' });
+  const handler = new GenericCookieHandler(detector);
+  handler.currentTab = { url: 'https://host.example.com/test' };
+
+  const hostCookie = {
+    name: '__Host-auth',
+    value: 'secure_val',
+    domain: 'host.example.com',
+    hostOnly: true,
+    path: '/',
+    secure: true,
+  };
+
+  const prepared = handler.prepareCookie(
+    hostCookie,
+    'https://host.example.com/test'
+  );
+  assert.equal(prepared.domain, undefined); // HostOnly cookies must NOT have domain property in chrome.cookies.set
+  assert.equal(prepared.name, '__Host-auth');
+});

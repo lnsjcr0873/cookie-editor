@@ -28,7 +28,8 @@ body * {
   text-align: start;
 }
 
-.notransition *, .notransition *::before {
+.notransition *,
+.notransition *::before {
   -webkit-transition: none !important;
   -moz-transition: none !important;
   -o-transition: none !important;
@@ -398,7 +399,6 @@ form.import > div {
   font-size: 0.85em;
   color: var(--secondary-text-color);
 }
-
 
 #cookie-container li .expando {
   max-height: 0;

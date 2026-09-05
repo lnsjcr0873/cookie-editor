@@ -20,6 +20,7 @@ export function createSinonBrowserMock(options = {}) {
       local: {
         get: sinon.stub().resolves({}),
         set: sinon.stub().resolves(),
+        remove: sinon.stub().resolves(),
       },
     },
     tabs: {

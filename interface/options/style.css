@@ -12,7 +12,8 @@ body * {
   box-sizing: border-box;
   text-align: start;
 }
-.notransition *, .notransition *::before {
+.notransition *,
+.notransition *::before {
   -webkit-transition: none !important;
   -moz-transition: none !important;
   -o-transition: none !important;

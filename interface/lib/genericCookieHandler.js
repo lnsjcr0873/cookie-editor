@@ -34,16 +34,69 @@ export class GenericCookieHandler extends EventEmitter {
    */
   prepareCookie(cookie, url) {
     const newCookie = {
-      domain: cookie.domain || '',
       name: cookie.name || '',
       value: cookie.value || '',
-      path: cookie.path || null,
-      secure: cookie.secure || null,
-      httpOnly: cookie.httpOnly || null,
-      expirationDate: cookie.expirationDate || null,
-      storeId: cookie.storeId || this.currentTab.cookieStoreId || null,
-      url: url,
     };
+
+    if (cookie.domain) {
+      newCookie.domain = cookie.domain;
+    }
+
+    if (cookie.path) {
+      newCookie.path = cookie.path;
+    }
+
+    if (typeof cookie.secure === 'boolean') {
+      newCookie.secure = cookie.secure;
+    }
+
+    if (typeof cookie.httpOnly === 'boolean') {
+      newCookie.httpOnly = cookie.httpOnly;
+    }
+
+    // CRITICAL: Session cookies MUST NOT have expirationDate set (never pass null or 0).
+    // In Chrome API, if expirationDate is set to 0 or null, it represents 1970-01-01 (already expired),
+    // causing Chrome to immediately delete the session cookie!
+    if (
+      typeof cookie.expirationDate === 'number' &&
+      cookie.expirationDate > 0 &&
+      !cookie.session
+    ) {
+      newCookie.expirationDate = cookie.expirationDate;
+    }
+
+    const storeId = cookie.storeId || this.currentTab?.cookieStoreId;
+    if (storeId) {
+      newCookie.storeId = storeId;
+    }
+
+    // Determine canonical URL for Chrome / Firefox cookies API
+    let targetUrl = url;
+    if (cookie.domain) {
+      const cleanDomain = cookie.domain.replace(/^\./, '');
+      const protocol = cookie.secure ? 'https://' : 'http://';
+      const path =
+        cookie.path && cookie.path.startsWith('/') ? cookie.path : '/';
+
+      if (!targetUrl) {
+        targetUrl = `${protocol}${cleanDomain}${path}`;
+      } else {
+        try {
+          const parsed = new URL(targetUrl);
+          if (
+            !parsed.hostname.endsWith(cleanDomain) &&
+            !cleanDomain.endsWith(parsed.hostname)
+          ) {
+            targetUrl = `${protocol}${cleanDomain}${path}`;
+          }
+        } catch {
+          targetUrl = `${protocol}${cleanDomain}${path}`;
+        }
+      }
+    } else if (!targetUrl && this.currentTab?.url) {
+      targetUrl = this.currentTab.url;
+    }
+    newCookie.url = targetUrl;
 
     // Bad hack on safari because cookies needs to have the very exact same domain
     // to be able to edit it.
@@ -58,14 +111,22 @@ export class GenericCookieHandler extends EventEmitter {
       cookie.hostOnly ||
       (this.browserDetector.isSafari() && !newCookie.domain)
     ) {
-      newCookie.domain = null;
+      delete newCookie.domain;
     }
 
     if (!this.browserDetector.isSafari()) {
-      newCookie.sameSite = cookie.sameSite || undefined;
-
-      if (newCookie.sameSite == 'no_restriction') {
-        newCookie.secure = true;
+      if (cookie.sameSite) {
+        const s = String(cookie.sameSite).toLowerCase();
+        if (s === 'no_restriction' || s === 'none') {
+          newCookie.sameSite = 'no_restriction';
+          newCookie.secure = true;
+        } else if (s === 'strict') {
+          newCookie.sameSite = 'strict';
+        } else if (s === 'lax') {
+          newCookie.sameSite = 'lax';
+        } else if (s === 'unspecified') {
+          newCookie.sameSite = 'unspecified';
+        }
       }
     }
 
@@ -103,11 +164,15 @@ export class GenericCookieHandler extends EventEmitter {
         }
       }
     } else {
-      return this.browserDetector.getApi().cookies.remove({
+      const removeDetails = {
         name: name,
-        url: url,
-        storeId: this.currentTab.cookieStoreId,
-      });
+        url: url || this.currentTab?.url,
+      };
+      const storeId = this.currentTab?.cookieStoreId;
+      if (storeId) {
+        removeDetails.storeId = storeId;
+      }
+      return this.browserDetector.getApi().cookies.remove(removeDetails);
     }
   }
 

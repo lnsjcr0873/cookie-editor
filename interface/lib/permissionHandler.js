@@ -51,6 +51,9 @@ export class PermissionHandler {
     try {
       const { protocol, hostname } = new URL(url);
       const rootDomain = this.getRootDomainName(hostname);
+      if (rootDomain === hostname || !rootDomain) {
+        return [`${protocol}//${hostname}/*`];
+      }
       return [`${protocol}//${hostname}/*`, `${protocol}//*.${rootDomain}/*`];
     } catch (err) {
       console.error(err);
@@ -98,6 +101,11 @@ export class PermissionHandler {
    * @return {string}
    */
   getRootDomainName(domain) {
+    if (!domain) return '';
+    // IP address or localhost or single token without dots
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(domain) || !domain.includes('.')) {
+      return domain;
+    }
     const parts = domain.split('.').reverse();
     const cnt = parts.length;
     if (cnt >= 3) {
@@ -106,6 +114,9 @@ export class PermissionHandler {
         return parts[2] + '.' + parts[1] + '.' + parts[0];
       }
     }
-    return parts[1] + '.' + parts[0];
+    if (cnt >= 2) {
+      return parts[1] + '.' + parts[0];
+    }
+    return domain;
   }
 }

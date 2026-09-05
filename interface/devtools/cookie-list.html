@@ -1,6 +1,6 @@
 <!doctype html>
 
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -13,7 +13,7 @@
     <div id="pageTitle">
       <h1 class="container">Cookie-Editor</h1>
       <div id="main-menu">
-        <button id="main-menu-button">
+        <button id="main-menu-button" title="更多功能菜单">
           <svg class="icon">
             <use href="../sprites/solid.svg#ellipsis-v"></use>
           </svg>
@@ -23,20 +23,27 @@
           <label
             class="menu-item switch"
             for="advanced-toggle-all"
-            id="advanced-toggle-all-label"
-          >
-            Show Advanced
+            id="advanced-toggle-all-label">
+            显示高级属性
             <label class="switch">
               <input
                 type="checkbox"
                 id="advanced-toggle-all"
-                aria-describedby="advanced-toggle-all-label"
-              />
+                aria-describedby="advanced-toggle-all-label" />
               <span class="slider"></span>
             </label>
           </label>
+          <button class="menu-item" id="menu-extend-cookies">
+            ⏳ 延长寿命 (+1年永生)
+          </button>
+          <button class="menu-item" id="menu-sessionize-cookies">
+            🔄 转为会话 Cookie
+          </button>
+          <button class="menu-item" id="menu-snapshot-now">
+            ⏱️ 记录状态快照
+          </button>
           <button class="menu-item" id="menu-all-options">
-            See All Options
+            全部设置选项
             <svg class="icon">
               <use href="../sprites/solid.svg#external-link-alt"></use>
             </svg>
@@ -45,7 +52,71 @@
       </div>
     </div>
 
-    <div id="ad-container"></div>
+    <!-- Multi-Account Profiles & Cookie Jar Bar -->
+    <div id="profile-bar">
+      <div class="profile-select-wrapper">
+        <label for="profile-select" style="font-weight: 600"
+          >👤 账号配置:</label
+        >
+        <select id="profile-select">
+          <option value="">默认会话</option>
+        </select>
+        <button
+          id="btn-save-profile"
+          class="btn-icon-action"
+          title="将当前会话保存为命名账号配置">
+          💾 保存配置
+        </button>
+        <button
+          id="btn-delete-profile"
+          class="btn-icon-action"
+          title="删除当前选中的账号配置"
+          style="display: none">
+          🗑️
+        </button>
+      </div>
+      <div>
+        <button
+          id="btn-stash-jar"
+          class="btn-icon-action highlight"
+          title="暂存当前会话至 Cookie Jar 并进入纯净访客沙盒 (免无痕模式)">
+          🍯 暂存沙盒 (免无痕)
+        </button>
+      </div>
+    </div>
+
+    <!-- Sandbox Active Warning Banner -->
+    <div id="sandbox-banner">
+      <span>🧪 <strong>【沙盒隔离模式中】</strong> 原会话已安全暂存</span>
+      <div class="banner-actions">
+        <button
+          id="btn-unstash-now"
+          title="退出沙盒模式并立即还原原有的登录会话">
+          🔄 退出沙盒并恢复
+        </button>
+        <button
+          id="btn-sandbox-save"
+          title="将当前沙盒中的会话保存为独立账号配置">
+          💾 保存沙盒为账号
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs (Cookies / LocalStorage / SessionStorage / Diff) -->
+    <div id="nav-tabs">
+      <div class="nav-tab active" data-tab="cookies">
+        🍪 Cookies <span id="tab-badge-cookies" class="tab-badge">0</span>
+      </div>
+      <div class="nav-tab" data-tab="localstorage">
+        💾 本地存储 (LocalStorage)
+        <span id="tab-badge-localstorage" class="tab-badge">0</span>
+      </div>
+      <div class="nav-tab" data-tab="sessionstorage">
+        📦 会话存储 (SessionStorage)
+        <span id="tab-badge-sessionstorage" class="tab-badge">0</span>
+      </div>
+      <div class="nav-tab" data-tab="diff">⏱️ 时光机 (Diff)</div>
+    </div>
 
     <div id="cookie-container"></div>
 
@@ -54,11 +125,10 @@
         <button
           class="panel-section-footer-button"
           id="create-cookie"
-          type="button"
-        >
+          type="button">
           <div>
             <svg class="icon"><use href="../sprites/solid.svg#plus"></use></svg>
-            <div class="tooltip" role="tooltip">Add</div>
+            <div class="tooltip" role="tooltip">添加</div>
           </div>
         </button>
         <div class="panel-section-footer-separator"></div>
@@ -66,13 +136,12 @@
         <button
           class="panel-section-footer-button danger"
           id="delete-all-cookies"
-          type="button"
-        >
+          type="button">
           <div>
             <svg class="icon">
               <use href="../sprites/solid.svg#trash"></use>
             </svg>
-            <div class="tooltip" role="tooltip">Delete All</div>
+            <div class="tooltip" role="tooltip">清空所有</div>
           </div>
         </button>
         <div class="panel-section-footer-separator"></div>
@@ -80,13 +149,12 @@
         <button
           class="panel-section-footer-button"
           id="import-cookies"
-          type="button"
-        >
+          type="button">
           <div>
             <svg class="icon">
               <use href="../sprites/solid.svg#file-import"></use>
             </svg>
-            <div class="tooltip" role="tooltip">Import</div>
+            <div class="tooltip" role="tooltip">导入</div>
           </div>
         </button>
         <div class="panel-section-footer-separator"></div>
@@ -94,13 +162,12 @@
         <button
           class="panel-section-footer-button"
           id="export-cookies"
-          type="button"
-        >
+          type="button">
           <div>
             <svg class="icon">
               <use href="../sprites/solid.svg#file-export"></use>
             </svg>
-            <div class="tooltip" role="tooltip">Export</div>
+            <div class="tooltip" role="tooltip">导出</div>
           </div>
         </button>
       </div>
@@ -111,13 +178,12 @@
         <button
           class="panel-section-footer-button"
           id="return-list-add"
-          type="button"
-        >
+          type="button">
           <div>
             <svg class="icon">
               <use href="../sprites/solid.svg#arrow-left"></use>
             </svg>
-            <div class="tooltip" role="tooltip">Cancel</div>
+            <div class="tooltip" role="tooltip">取消</div>
           </div>
         </button>
         <div class="panel-section-footer-separator"></div>
@@ -125,11 +191,10 @@
         <button
           class="panel-section-footer-button primary"
           id="save-create-cookie"
-          type="button"
-        >
+          type="button">
           <div>
             <svg class="icon"><use href="../sprites/solid.svg#save"></use></svg>
-            <div class="tooltip" role="tooltip">Add</div>
+            <div class="tooltip" role="tooltip">保存添加</div>
           </div>
         </button>
       </div>
@@ -140,13 +205,12 @@
         <button
           class="panel-section-footer-button"
           id="return-list-import"
-          type="button"
-        >
+          type="button">
           <div>
             <svg class="icon">
               <use href="../sprites/solid.svg#arrow-left"></use>
             </svg>
-            <div class="tooltip" role="tooltip">Cancel</div>
+            <div class="tooltip" role="tooltip">取消</div>
           </div>
         </button>
         <div class="panel-section-footer-separator"></div>
@@ -154,13 +218,12 @@
         <button
           class="panel-section-footer-button primary"
           id="save-import-cookie"
-          type="button"
-        >
+          type="button">
           <div>
             <svg class="icon">
               <use href="../sprites/solid.svg#file-import"></use>
             </svg>
-            <div class="tooltip" role="tooltip">Import</div>
+            <div class="tooltip" role="tooltip">确认导入</div>
           </div>
         </button>
       </div>
@@ -169,11 +232,7 @@
     <div id="notification-container">
       <div id="notification">
         <span></span>
-        <button
-          id="notification-dismiss"
-          aria-label="Dismiss Notification"
-          type="button"
-        >
+        <button id="notification-dismiss" aria-label="关闭通知" type="button">
           <svg class="icon"><use href="../sprites/solid.svg#times"></use></svg>
         </button>
       </div>
@@ -188,8 +247,7 @@
           class="header container"
           tabindex="0"
           role="button"
-          aria-expanded="false"
-        >
+          aria-expanded="false">
           <svg class="icon arrow">
             <use href="../sprites/solid.svg#angle-down"></use>
           </svg>
@@ -197,12 +255,57 @@
           <span class="header-extra-info"></span>
           <div class="btns">
             <button
-              class="delete"
-              data-tooltip-left="Delete"
-              aria-label="Delete"
+              class="badge-btn badge-jwt btn-view-jwt"
+              title="实时解析 JWT Token"
               tabindex="-1"
               type="button"
-            >
+              style="display: none">
+              🔑 JWT
+            </button>
+            <button
+              class="btn-copy-val"
+              data-tooltip-left="复制值"
+              aria-label="复制值"
+              tabindex="-1"
+              type="button"
+              style="
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 2px 4px;
+                font-size: 11px;
+              ">
+              📋
+            </button>
+            <button
+              class="btn-clone-cookie"
+              data-tooltip-left="克隆副本"
+              aria-label="克隆副本"
+              tabindex="-1"
+              type="button"
+              style="
+                background: none;
+                border: none;
+                cursor: pointer;
+                padding: 2px 4px;
+                font-size: 11px;
+              ">
+              👯
+            </button>
+            <button
+              class="btn-lock badge-lock"
+              data-tooltip-left="锁定/解锁保护"
+              aria-label="锁定/解锁保护"
+              tabindex="-1"
+              type="button">
+              🔓
+            </button>
+            <button
+              class="delete"
+              data-tooltip-left="删除"
+              aria-label="删除"
+              tabindex="-1"
+              type="button">
               <svg class="icon">
                 <use href="../sprites/solid.svg#trash"></use>
               </svg>
@@ -214,20 +317,18 @@
             <div class="action-btns">
               <button
                 class="delete"
-                data-tooltip="Delete"
-                aria-label="Delete"
-                type="button"
-              >
+                data-tooltip="删除"
+                aria-label="删除"
+                type="button">
                 <svg class="icon">
                   <use href="../sprites/solid.svg#trash"></use>
                 </svg>
               </button>
               <button
                 class="save"
-                data-tooltip="Save"
-                aria-label="Save"
-                type="submit"
-              >
+                data-tooltip="保存"
+                aria-label="保存"
+                type="submit">
                 <svg class="icon">
                   <use href="../sprites/solid.svg#save"></use>
                 </svg>
@@ -235,39 +336,38 @@
             </div>
             <form data-id="" class="form container">
               <div>
-                <label class="label-name">Name</label>
+                <label class="label-name">名称 (Name)</label>
                 <input name="name" type="text" class="input-name" />
               </div>
               <div>
-                <label class="label-value">Value</label>
+                <label class="label-value">值 (Value)</label>
                 <textarea name="value" class="input-value"></textarea>
               </div>
               <button class="advanced-toggle" type="button">
-                Show Advanced
+                显示高级属性
               </button>
               <div class="advanced-form">
                 <div>
-                  <label class="label-domain">Domain</label>
+                  <label class="label-domain">域名 (Domain)</label>
                   <input name="domain" type="text" class="input-domain" />
                 </div>
                 <div>
-                  <label class="label-path">Path</label>
+                  <label class="label-path">路径 (Path)</label>
                   <input name="path" type="text" class="input-path" />
                 </div>
                 <div>
-                  <label class="label-expiration">Expiration</label>
+                  <label class="label-expiration">过期时间 (Expiration)</label>
                   <input
                     name="expiration"
                     type="text"
-                    class="input-expiration"
-                  />
+                    class="input-expiration" />
                 </div>
                 <div>
-                  <label class="label-sameSite">Same Site</label>
+                  <label class="label-sameSite">SameSite</label>
                   <select name="sameSite" class="input-sameSite">
-                    <option value="no_restriction">None</option>
-                    <option value="lax">Lax</option>
-                    <option value="strict">Strict</option>
+                    <option value="no_restriction">None (无限制)</option>
+                    <option value="lax">Lax (默认宽松)</option>
+                    <option value="strict">Strict (严格)</option>
                   </select>
                 </div>
                 <div class="checkbox-list">
@@ -275,29 +375,26 @@
                     <input
                       type="checkbox"
                       name="hostOnly"
-                      class="input-hostOnly"
-                    />
-                    Host Only
+                      class="input-hostOnly" />
+                    仅主机 (Host Only)
                   </label>
                   <label class="label-session">
                     <input
                       type="checkbox"
                       name="session"
-                      class="input-session"
-                    />
-                    Session
+                      class="input-session" />
+                    会话 (Session)
                   </label>
                   <label class="label-secure">
                     <input type="checkbox" name="secure" class="input-secure" />
-                    Secure
+                    安全传输 (Secure)
                   </label>
                   <label class="label-httpOnly">
                     <input
                       type="checkbox"
                       name="httpOnly"
-                      class="input-httpOnly"
-                    />
-                    Http Only
+                      class="input-httpOnly" />
+                    仅Http (Http Only)
                   </label>
                 </div>
               </div>
@@ -311,14 +408,27 @@
       <form class="form container import">
         <div>
           <label for="content-import">
-            Supported format: JSON, Header string, Netscape.
+            支持导入格式：JSON、Header 字符串、Netscape、Playwright、cURL 等
           </label>
           <textarea
             class="json"
             name="content"
             id="content-import"
-            placeholder='JSON:	&#10;[{"name":"Cookie","value":"text",[...]}] &#10;&#10;Header String:	&#10;Cookie=text;Editor=yes	&#10;&#10;Netscape:	&#10;# Netscape HTTP Cookie File	&#10;# [...]	&#10;cookie-editor.com[...]	Cookie	text'
-          ></textarea>
+            placeholder='JSON 示例：&#10;[{"name":"Cookie","value":"text",[...]}] &#10;&#10;Header 字符串示例：&#10;Cookie=text;Editor=yes &#10;&#10;Netscape 示例：&#10;# Netscape HTTP Cookie File&#10;example.com  TRUE  /  FALSE  1800000000  Cookie  text'></textarea>
+        </div>
+      </form>
+    </template>
+
+    <template id="tmp-export">
+      <form class="form container export sbro">
+        <div>
+          <label for="content-export">JSON 格式导出预览</label>
+          <textarea
+            class="json"
+            name="content"
+            id="content-export"
+            placeholder="导出的数据将显示在这里">
+          </textarea>
         </div>
       </form>
     </template>
@@ -326,40 +436,80 @@
     <template id="tmp-create">
       <form class="form container create">
         <div>
-          <label for="name-create">Name</label>
+          <label for="name-create">名称 (Name)</label>
           <input name="name" type="text" value="" id="name-create" />
         </div>
         <div>
-          <label for="value-create">Value</label>
+          <label for="value-create">值 (Value)</label>
           <textarea name="value" id="value-create"></textarea>
+        </div>
+        <button class="advanced-toggle" type="button">显示高级属性</button>
+        <div class="advanced-form">
+          <div>
+            <label class="label-domain">域名 (Domain)</label>
+            <input name="domain" type="text" class="input-domain" />
+          </div>
+          <div>
+            <label class="label-path">路径 (Path)</label>
+            <input name="path" type="text" value="/" class="input-path" />
+          </div>
+          <div>
+            <label class="label-expiration">过期时间 (Expiration)</label>
+            <input name="expiration" type="text" class="input-expiration" />
+          </div>
+          <div>
+            <label class="label-sameSite">SameSite</label>
+            <select name="sameSite" class="input-sameSite">
+              <option value="lax">Lax (默认宽松)</option>
+              <option value="no_restriction">None (无限制)</option>
+              <option value="strict">Strict (严格)</option>
+            </select>
+          </div>
+          <div class="checkbox-list">
+            <label class="label-hostOnly">
+              <input type="checkbox" name="hostOnly" class="input-hostOnly" />
+              仅主机 (Host Only)
+            </label>
+            <label class="label-session">
+              <input
+                type="checkbox"
+                name="session"
+                checked
+                class="input-session" />
+              会话 (Session)
+            </label>
+            <label class="label-secure">
+              <input type="checkbox" name="secure" class="input-secure" />
+              安全传输 (Secure)
+            </label>
+            <label class="label-httpOnly">
+              <input type="checkbox" name="httpOnly" class="input-httpOnly" />
+              仅Http (Http Only)
+            </label>
+          </div>
         </div>
       </form>
     </template>
 
     <template id="tmp-empty">
-      <p class="container" id="no-cookies">
-        This page does not have any cookies.
-      </p>
+      <p class="container" id="no-cookies">当前页面没有任何 Cookie。</p>
     </template>
 
     <template id="tmp-no-permission">
       <div class="container" id="no-permission">
-        You do not have the permission required to read the cookies for this
-        page.
+        您尚未授予读取此页面 Cookie 所需的权限。
         <div>
-          Request permission for...
+          请求授权范围：
           <div class="button-container">
             <button
               id="request-permission"
-              title="Request permission to read cookies for this site."
-            >
-              This site
+              title="申请读取当前网站的 Cookie 权限">
+              当前网站
             </button>
             <button
               id="request-permission-all"
-              title="Request permission to read cookies for all sites."
-            >
-              All sites
+              title="申请读取所有网站的 Cookie 权限">
+              所有网站
             </button>
           </div>
         </div>
@@ -368,41 +518,199 @@
 
     <template id="tmp-permission-impossible">
       <div class="container" id="permission-impossible">
-        Cookie-Editor can't display cookies for this page.
+        Cookie-Editor 无法在此页面显示 Cookie（受浏览器安全策略保护）。
       </div>
     </template>
 
     <template id="tmp-search-bar">
-      <li>
+      <li id="search-li">
         <div id="searchContainer">
           <svg class="icon search">
             <use href="../sprites/solid.svg#search"></use>
           </svg>
-          <input id="searchField" type="text" placeholder="Search" />
+          <input
+            id="searchField"
+            type="text"
+            placeholder="搜索 (如 name:auth is:secure is:jwt)" />
+        </div>
+        <div id="health-strip" class="health-strip">
+          <div id="health-stats">
+            <span id="health-size-badge" title="当前全站 Cookie 载荷总大小"
+              >📏 0 B</span
+            >
+            <span
+              id="health-score-badge"
+              class="health-score-badge"
+              title="安全与合规性评分"
+              >🛡️ 100/100</span
+            >
+          </div>
+          <button
+            id="btn-auto-harden"
+            class="btn-auto-harden"
+            type="button"
+            title="一键加固所有 Cookie：开启 Secure、SameSite=Lax 及鉴权 Cookie 的 HttpOnly">
+            ⚡ 一键加固
+          </button>
         </div>
       </li>
     </template>
 
     <template id="tmp-export-options">
       <div id="export-menu">
-        <h3>Export As:</h3>
-        <button id="export-json" type="button">JSON</button>
-        <button id="export-headerstring" type="button">Header String</button>
-        <button id="export-netscape" type="button">Netscape</button>
+        <h3>导出为：</h3>
+        <button id="export-json" type="button">JSON 格式</button>
+        <button id="export-headerstring" type="button">
+          请求头字符串 (Header)
+        </button>
+        <button id="export-netscape" type="button">Netscape 格式</button>
+        <button id="export-curl" type="button">💻 cURL 命令行</button>
+        <button id="export-playwright" type="button">🎭 Playwright JSON</button>
+        <button id="export-python" type="button">
+          🐍 Python requests 脚本
+        </button>
+        <button id="export-encrypted" type="button">
+          🔐 加密会话包 (AES-GCM)
+        </button>
       </div>
     </template>
 
-    <template id="tmp-ad-item">
-      <div>
-        <span class="ad-tag">Ad</span>
-        <div class="ad-link">
-          <a href="" target="_blank" rel="noopener noreferrer">Ad Text!</a>
+    <!-- Modal: Input Prompt (Profile Name, etc.) -->
+    <div id="modal-prompt" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span id="modal-prompt-title">保存账号配置</span>
         </div>
-        <div class="ad-actions">
-          <button class="dont-show">Not interested</button>
-          <button class="later">Later</button>
+        <div class="modal-body">
+          <label
+            id="modal-prompt-label"
+            for="modal-prompt-input"
+            style="display: block; margin-bottom: 6px"
+            >配置名称:</label
+          >
+          <input
+            id="modal-prompt-input"
+            type="text"
+            style="width: 100%; padding: 6px; box-sizing: border-box" />
+        </div>
+        <div class="modal-footer">
+          <button
+            id="modal-prompt-cancel"
+            type="button"
+            class="btn-icon-action">
+            取消
+          </button>
+          <button
+            id="modal-prompt-ok"
+            type="button"
+            class="btn-icon-action highlight">
+            确认保存
+          </button>
         </div>
       </div>
-    </template>
+    </div>
+
+    <!-- Modal: Password (Encryption / Decryption) -->
+    <div id="modal-password" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <span id="modal-password-title">会话加密 / 解密密码</span>
+        </div>
+        <div class="modal-body">
+          <label
+            id="modal-password-label"
+            for="modal-password-input"
+            style="display: block; margin-bottom: 6px"
+            >输入密码:</label
+          >
+          <input
+            id="modal-password-input"
+            type="password"
+            style="width: 100%; padding: 6px; box-sizing: border-box" />
+        </div>
+        <div class="modal-footer">
+          <button
+            id="modal-password-cancel"
+            type="button"
+            class="btn-icon-action">
+            取消
+          </button>
+          <button
+            id="modal-password-ok"
+            type="button"
+            class="btn-icon-action highlight">
+            确认
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal: JWT Inspector -->
+    <div id="modal-jwt" class="modal-overlay">
+      <div class="modal-card" style="max-width: 480px">
+        <div class="modal-header">
+          <span>🔑 JWT 实时解析检测器</span>
+          <button
+            id="modal-jwt-close"
+            type="button"
+            style="
+              background: none;
+              border: none;
+              cursor: pointer;
+              font-size: 16px;
+            ">
+            ✕
+          </button>
+        </div>
+        <div class="modal-body">
+          <div
+            id="jwt-status-banner"
+            style="
+              margin-bottom: 10px;
+              padding: 6px 8px;
+              border-radius: 4px;
+              font-weight: bold;
+            "></div>
+          <div style="font-weight: 600; margin-bottom: 4px">
+            头部信息 (Header):
+          </div>
+          <pre
+            id="jwt-header-view"
+            style="
+              background: var(--secondary-surface-color);
+              padding: 6px;
+              border-radius: 4px;
+              font-size: 11px;
+              overflow-x: auto;
+              margin: 0 0 10px 0;
+            "></pre>
+          <div style="font-weight: 600; margin-bottom: 4px">
+            载荷声明 (Payload):
+          </div>
+          <pre
+            id="jwt-payload-view"
+            style="
+              background: var(--secondary-surface-color);
+              padding: 6px;
+              border-radius: 4px;
+              font-size: 11px;
+              overflow-x: auto;
+              margin: 0 0 10px 0;
+              max-height: 160px;
+            "></pre>
+        </div>
+        <div class="modal-footer">
+          <button id="modal-jwt-copy" type="button" class="btn-icon-action">
+            📋 复制 Payload
+          </button>
+          <button
+            id="modal-jwt-done"
+            type="button"
+            class="btn-icon-action highlight">
+            关闭
+          </button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

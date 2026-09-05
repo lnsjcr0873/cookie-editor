@@ -125,7 +125,9 @@ export class Animate {
         oldPage.remove();
       }
       container.appendChild(newPage);
-      callback();
+      if (callback) {
+        callback();
+      }
       return;
     }
     const animationTime = '0.3s';

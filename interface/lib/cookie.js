@@ -1,5 +1,6 @@
 import { Animate } from './animate.js';
 import { GUID } from './guid.js';
+import { JWTInspector } from './jwtInspector.js';
 import { ExtraInfos } from './options/extraInfos.js';
 
 /**
@@ -11,13 +12,15 @@ export class Cookie {
    * @param {string} id HTML id name for this cookie.
    * @param {object} cookie Cookie data.
    * @param {OptionsHandler} optionHandler
+   * @param {boolean} isLocked
    */
-  constructor(id, cookie, optionHandler) {
+  constructor(id, cookie, optionHandler, isLocked = false) {
     this.id = id;
-    this.cookie = cookie;
+    this.cookie = cookie || {};
     this.guid = GUID.get();
     this.baseHtml = false;
     this.optionHandler = optionHandler;
+    this.isLocked = Boolean(isLocked);
   }
 
   /**
@@ -229,16 +232,119 @@ export class Cookie {
     advancedToggleButton.addEventListener('click', function () {
       advancedForm.classList.toggle('show');
       if (advancedForm.classList.contains('show')) {
-        advancedToggleButton.textContent = 'Hide Advanced';
+        advancedToggleButton.textContent = '隐藏高级属性';
       } else {
-        advancedToggleButton.textContent = 'Show Advanced';
+        advancedToggleButton.textContent = '显示高级属性';
       }
       Animate.resizeSlide(form.parentElement.parentElement);
     });
 
     if (this.optionHandler.getCookieAdvanced()) {
       advancedForm.classList.add('show');
-      advancedToggleButton.textContent = 'Hide Advanced';
+      advancedToggleButton.textContent = '隐藏高级属性';
+    }
+
+    // Lock button handling
+    const lockBtn = this.baseHtml.querySelector('.btn-lock');
+    if (lockBtn) {
+      this.updateLockIcon();
+      lockBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        this.isLocked = !this.isLocked;
+        this.updateLockIcon();
+        const event = new CustomEvent('cookieLockToggled', {
+          bubbles: true,
+          detail: { name: this.cookie.name, isLocked: this.isLocked },
+        });
+        this.baseHtml.dispatchEvent(event);
+      });
+    }
+
+    // Copy value button handling
+    const copyBtn = this.baseHtml.querySelector('.btn-copy-val');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(this.cookie.value || '').catch(() => {
+          const fakeText = document.createElement('textarea');
+          fakeText.value = this.cookie.value || '';
+          document.body.appendChild(fakeText);
+          fakeText.select();
+          document.execCommand('Copy');
+          document.body.removeChild(fakeText);
+        });
+        copyBtn.textContent = '✓';
+        setTimeout(() => {
+          copyBtn.textContent = '📋';
+        }, 1200);
+      });
+    }
+
+    // JWT Inspector button handling
+    const jwtBtn = this.baseHtml.querySelector('.btn-view-jwt');
+    if (jwtBtn) {
+      this.updateJwtBadge();
+      jwtBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const event = new CustomEvent('inspectJWT', {
+          bubbles: true,
+          detail: { name: this.cookie.name, value: this.cookie.value },
+        });
+        this.baseHtml.dispatchEvent(event);
+      });
+    }
+
+    // Clone button handling
+    const cloneBtn = this.baseHtml.querySelector('.btn-clone-cookie');
+    if (cloneBtn) {
+      cloneBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const event = new CustomEvent('cookieCloneRequested', {
+          bubbles: true,
+          detail: {
+            cookie: { ...this.cookie, name: `${this.cookie.name}_copy` },
+          },
+        });
+        this.baseHtml.dispatchEvent(event);
+      });
+    }
+  }
+
+  /**
+   * Updates the lock icon.
+   */
+  updateLockIcon() {
+    const lockBtn = this.baseHtml?.querySelector('.btn-lock');
+    if (!lockBtn) return;
+    if (this.isLocked) {
+      lockBtn.textContent = '🔒';
+      lockBtn.classList.add('locked');
+      lockBtn.title = '此 Cookie 已锁定保护（防止误删或被清空）';
+    } else {
+      lockBtn.textContent = '🔓';
+      lockBtn.classList.remove('locked');
+      lockBtn.title = '点击锁定/保护此 Cookie';
+    }
+  }
+
+  /**
+   * Updates the JWT badge visibility and expired status.
+   */
+  updateJwtBadge() {
+    const jwtBtn = this.baseHtml?.querySelector('.btn-view-jwt');
+    if (!jwtBtn) return;
+    if (JWTInspector.isJWT(this.cookie.value)) {
+      const decoded = JWTInspector.decodeJWT(this.cookie.value);
+      jwtBtn.style.display = 'inline-flex';
+      if (decoded?.isExpired) {
+        jwtBtn.classList.add('expired');
+        jwtBtn.textContent = '⚠️ JWT (已过期)';
+      } else {
+        jwtBtn.classList.remove('expired');
+        jwtBtn.textContent = '🔑 JWT';
+      }
+    } else {
+      jwtBtn.style.display = 'none';
     }
   }
 
@@ -276,6 +382,7 @@ export class Cookie {
     const valueInput = this.baseHtml.querySelector('#value-' + this.guid);
     const header = this.baseHtml.querySelector('.header');
     valueInput.value = this.cookie.value;
+    this.updateJwtBadge();
 
     this.animateChangeOnNode(header);
     this.animateChangeOnNode(valueInput);
@@ -368,7 +475,7 @@ export class Cookie {
    * Actions to do whenever the Session input changes.
    * @param {boolean} inputValue The value of the Session input.
    */
-  afterSessionChanged(inputValue) {
+  afterSessionChanged(inputValue = !this.cookie.expirationDate) {
     const expirationInput = this.baseHtml.querySelector(
       '#expiration-' + this.guid
     );
@@ -511,19 +618,13 @@ export class Cookie {
       case ExtraInfos.Samesite:
         return this.cookie.sameSite;
       case ExtraInfos.Hostonly:
-        return this.formatBoolForDisplayShort(
-          'Host Only',
-          this.cookie.hostOnly
-        );
+        return this.formatBoolForDisplayShort('仅主机', this.cookie.hostOnly);
       case ExtraInfos.Session:
-        return this.formatBoolForDisplayShort('Session', this.cookie.session);
+        return this.formatBoolForDisplayShort('会话', this.cookie.session);
       case ExtraInfos.Secure:
-        return this.formatBoolForDisplayShort('Secure', this.cookie.secure);
+        return this.formatBoolForDisplayShort('安全', this.cookie.secure);
       case ExtraInfos.Httponly:
-        return this.formatBoolForDisplayShort(
-          'Http Only',
-          this.cookie.httpOnly
-        );
+        return this.formatBoolForDisplayShort('仅Http', this.cookie.httpOnly);
       case ExtraInfos.Nothing:
       default:
         return '';
@@ -539,23 +640,23 @@ export class Cookie {
     const extraInfoType = this.optionHandler.getExtraInfo();
     switch (extraInfoType) {
       case ExtraInfos.Value:
-        return 'Value: ' + this.cookie.value;
+        return '值 (Value): ' + this.cookie.value;
       case ExtraInfos.Domain:
-        return 'Domain: ' + this.cookie.domain;
+        return '域名 (Domain): ' + this.cookie.domain;
       case ExtraInfos.Path:
-        return 'Path: ' + this.cookie.path;
+        return '路径 (Path): ' + this.cookie.path;
       case ExtraInfos.Expiration:
-        return 'Expiration: ' + this.formatExpirationForDisplay();
+        return '过期时间 (Expiration): ' + this.formatExpirationForDisplay();
       case ExtraInfos.Samesite:
-        return 'Same Site: ' + this.cookie.sameSite;
+        return 'SameSite: ' + this.cookie.sameSite;
       case ExtraInfos.Hostonly:
-        return 'Host Only: ' + this.cookie.hostOnly;
+        return '仅主机 (Host Only): ' + this.cookie.hostOnly;
       case ExtraInfos.Session:
-        return 'Session: ' + this.cookie.session;
+        return '会话 (Session): ' + this.cookie.session;
       case ExtraInfos.Secure:
-        return 'Secure: ' + this.cookie.secure;
+        return '安全传输 (Secure): ' + this.cookie.secure;
       case ExtraInfos.Httponly:
-        return 'HTTP Only: ' + this.cookie.httpOnly;
+        return '仅Http (HTTP Only): ' + this.cookie.httpOnly;
       case ExtraInfos.Nothing:
       default:
         return '';
@@ -563,21 +664,23 @@ export class Cookie {
   }
 
   /**
-   * Generates a hashcode to represent a cookie based on its name and domain.
+   * Generates a hashcode to represent a cookie based on its name, domain, path, and storeId.
    * @param {object} cookie A cookie's data.
    * @return {string} A hashcode.
    */
   static hashCode(cookie) {
-    const cookieString = cookie.name + cookie.domain;
+    if (!cookie) return '0';
+    const name = cookie.name || '';
+    const domain = (cookie.domain || '').replace(/^\./, '');
+    const path = cookie.path || '/';
+    const storeId = cookie.storeId || '';
+    const cookieString = `${name}_${domain}_${path}_${storeId}`;
     let hash = 0;
-    let i;
-    let chr;
-    if (cookieString.length === 0) return hash;
-    for (i = 0; i < cookieString.length; i++) {
-      chr = cookieString.charCodeAt(i);
-      hash = (hash << 5) - hash + chr;
+    if (cookieString.length === 0) return '0';
+    for (let i = 0; i < cookieString.length; i++) {
+      hash = (hash << 5) - hash + cookieString.charCodeAt(i);
       hash |= 0; // Convert to 32bit integer
     }
-    return hash;
+    return String(Math.abs(hash));
   }
 }

@@ -38,9 +38,9 @@
   --menu-surface-color: var(--primary-surface-color);
   --menu-surface-hover-color: var(--secondary-surface-color);
   --menu-border-color: var(--primary-border-color);
-  
+
   --switch-surface-handle-color: var(--primary-surface-color);
-  --switch-surface-on-color: #2196F3;
+  --switch-surface-on-color: #2196f3;
   --switch-surface-neutral-color: var(--primary-border-color);
 
   --notice-danger-surface-color: #f8000011;

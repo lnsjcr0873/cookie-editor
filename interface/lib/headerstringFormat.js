@@ -45,9 +45,10 @@ export class HeaderstringFormat {
       if (!Object.prototype.hasOwnProperty.call(cookies, cookieId)) {
         continue;
       }
-      const exportedCookie = cookies[cookieId].cookie;
-      const name = exportedCookie.name;
-      const value = exportedCookie.value;
+      const rawCookie = cookies[cookieId]?.cookie || cookies[cookieId];
+      if (!rawCookie || !rawCookie.name) continue;
+      const name = rawCookie.name;
+      const value = rawCookie.value || '';
       exportedCookies.push(`${name}=${value}`);
     }
     return exportedCookies.join(';');

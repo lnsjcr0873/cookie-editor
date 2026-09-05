@@ -43,8 +43,8 @@ export class CookieHandlerDevtools extends GenericCookieHandler {
    */
   async getAllCookies() {
     const response = await this.sendMessage('getAllCookies', {
-      url: this.currentTab.url,
-      storeId: this.currentTab.cookieStoreId,
+      url: this.currentTab?.url,
+      storeId: this.currentTab?.cookieStoreId,
     });
     if (response && response.success === false) {
       throw new Error(response.error || 'Failed to get cookies');
@@ -79,7 +79,7 @@ export class CookieHandlerDevtools extends GenericCookieHandler {
     const response = await this.sendMessage('removeCookie', {
       name: name,
       url: url,
-      storeId: this.currentTab.cookieStoreId,
+      storeId: this.currentTab?.cookieStoreId,
     });
     if (response && response.success === false) {
       throw new Error(response.error || 'Failed to remove cookie');
@@ -113,8 +113,14 @@ export class CookieHandlerDevtools extends GenericCookieHandler {
    *     occurred.
    */
   onCookiesChanged = changeInfo => {
-    const domain = changeInfo.cookie.domain.substring(1);
-    if (this.currentTab.url.indexOf(domain) !== -1) {
+    if (!changeInfo?.cookie?.domain || !this.currentTab?.url) {
+      this.emit('cookiesChanged', changeInfo);
+      return;
+    }
+    const domain = changeInfo.cookie.domain.startsWith('.')
+      ? changeInfo.cookie.domain.substring(1)
+      : changeInfo.cookie.domain;
+    if (this.currentTab.url.includes(domain)) {
       this.emit('cookiesChanged', changeInfo);
     }
   };
@@ -136,12 +142,18 @@ export class CookieHandlerDevtools extends GenericCookieHandler {
    */
   updateCurrentTab = async () => {
     try {
-      const tabInfo = await this.sendMessage('getCurrentTab', null);
+      const inspectedTabId =
+        this.browserDetector.getApi()?.devtools?.inspectedWindow?.tabId;
+      const tabInfo = await this.sendMessage(
+        'getCurrentTab',
+        inspectedTabId ? { tabId: inspectedTabId } : null
+      );
       if (!tabInfo || !tabInfo[0]) {
         return;
       }
       const newTab =
         tabInfo[0].id !== this.currentTabId ||
+        !this.currentTab ||
         tabInfo[0].url !== this.currentTab.url;
       this.currentTabId = tabInfo[0].id;
       this.currentTab = tabInfo[0];
