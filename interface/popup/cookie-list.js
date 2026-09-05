@@ -300,6 +300,9 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
         sendNotification('JWT 载荷 (Payload) 已复制到剪贴板！');
       }
     });
+    document.getElementById('modal-jwt')?.addEventListener('click', e => {
+      if (e.target.id === 'modal-jwt') hideJwtModal();
+    });
 
     /**
      * Expands the HTML cookie element.
@@ -1370,17 +1373,22 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
         if (e.key === 'Enter') onOk();
         if (e.key === 'Escape') onCancel();
       };
+      const onBackdrop = e => {
+        if (e.target === modal) onCancel();
+      };
 
       function cleanup() {
         modal.classList.remove('visible');
         btnOk.removeEventListener('click', onOk);
         btnCancel.removeEventListener('click', onCancel);
         inputEl.removeEventListener('keydown', onKeyDown);
+        modal.removeEventListener('click', onBackdrop);
       }
 
       btnOk.addEventListener('click', onOk);
       btnCancel.addEventListener('click', onCancel);
       inputEl.addEventListener('keydown', onKeyDown);
+      modal.addEventListener('click', onBackdrop);
     });
   }
 
@@ -1413,17 +1421,22 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
         if (e.key === 'Enter') onOk();
         if (e.key === 'Escape') onCancel();
       };
+      const onBackdrop = e => {
+        if (e.target === modal) onCancel();
+      };
 
       function cleanup() {
         modal.classList.remove('visible');
         btnOk.removeEventListener('click', onOk);
         btnCancel.removeEventListener('click', onCancel);
         inputEl.removeEventListener('keydown', onKeyDown);
+        modal.removeEventListener('click', onBackdrop);
       }
 
       btnOk.addEventListener('click', onOk);
       btnCancel.addEventListener('click', onCancel);
       inputEl.addEventListener('keydown', onKeyDown);
+      modal.addEventListener('click', onBackdrop);
     });
   }
 
@@ -1866,6 +1879,14 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
   }
 
   function onCookiesChanged(changeInfo) {
+    if (currentActiveTab !== 'cookies') {
+      getRawCookiesList().then(cookies => {
+        const badge = document.getElementById('tab-badge-cookies');
+        if (badge) badge.textContent = cookies.length;
+      });
+      return;
+    }
+
     if (!changeInfo || !changeInfo.cookie) {
       showCookiesForTab();
       return;
@@ -1882,14 +1903,17 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
           if (!Object.keys(loadedCookies).length) {
             showNoCookies();
           }
+          updateHealthStrip();
         });
         delete loadedCookies[id];
+        updateHealthStrip();
       }
       return;
     }
 
     if (loadedCookies[id]) {
       loadedCookies[id].updateHtml(changeInfo.cookie);
+      updateHealthStrip();
       return;
     }
 
@@ -1914,6 +1938,7 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
 
         if (cookiesListHtml) {
           cookiesListHtml.appendChild(newCookie.html);
+          updateHealthStrip();
         }
       });
   }
@@ -1967,7 +1992,7 @@ import { CookieHandlerPopup } from './cookieHandlerPopup.js';
     );
     searchBarContainer
       .getElementById('searchField')
-      ?.addEventListener('keyup', e => filterCookies(e.target, e.target.value));
+      ?.addEventListener('input', e => filterCookies(e.target, e.target.value));
 
     searchBarContainer
       .getElementById('btn-auto-harden')
